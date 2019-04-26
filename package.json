@@ -1,0 +1,21 @@
+{
+  "name": "myPlayer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "server": "node ./server/index.js",
+    "build": "tsc -p .",
+    "dev": "tsc -p . --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "chunks-stream": "^1.1.0",
+    "express": "^4.16.4",
+    "portscanner": "^2.2.0",
+    "requirejs": "^2.3.6",
+    "typescript": "^3.4.5"
+  }
+}
