@@ -1,4 +1,5 @@
 import { EventEmitter } from "../utils/EventEmitter";
+import { PlayerParts } from "../utils/PlayerParts";
 import { Loader } from "./Loader";
 
 class ReaderWrapper {
@@ -30,34 +31,22 @@ class ReaderWrapper {
     }
 }
 
-export class LiveLoader implements Loader {
-    constructor(private _url: string, private _eventBus: EventEmitter) {
-        this._onPlay = this._onPlay.bind(this);
-        this._onPause = this._onPause.bind(this);
-        this._onResume = this._onResume.bind(this);
-        this._onDestory = this._onDestory.bind(this);
-
-        this._eventBus.on("play", this._onPlay);
-        this._eventBus.on("pause", this._onPause);
-        this._eventBus.on("resume", this._onResume);
-        this._eventBus.on("destory", this._onDestory);
+export class LiveLoader extends PlayerParts implements Loader {
+    constructor(private _url: string, eventBus: EventEmitter) {
+        super(eventBus);
     }
-    private _onPlay() {
+    _onPlay() {
         this._fetch();
     }
-    private _onPause() {
+    _onPause() {
         this._isPlaying = false;
     }
-    private _onResume() {
+    _onResume() {
         this._fetch();
     }
-    private _onDestory() {
+    _onDestory() {
         this._isPlaying = false;
-
-        this._eventBus.off("play", this._onPlay);
-        this._eventBus.off("pause", this._onPause);
-        this._eventBus.off("resume", this._onResume);
-        this._eventBus.off("destory", this._onDestory);
+        this._offPlayerEvents();
     }
 
     private _isPlaying = false;
