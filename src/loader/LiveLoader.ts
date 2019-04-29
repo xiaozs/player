@@ -30,37 +30,56 @@ class ReaderWrapper {
     }
 }
 
-export class LiveLoader extends EventEmitter implements Loader {
+export class LiveLoader implements Loader {
     constructor(private _url: string, private _eventBus: EventEmitter) {
-        super();
+        this._onPlay = this._onPlay.bind(this);
+        this._onPause = this._onPause.bind(this);
+        this._onResume = this._onResume.bind(this);
+        this._onDestory = this._onDestory.bind(this);
+
+        this._eventBus.on("play", this._onPlay);
+        this._eventBus.on("pause", this._onPause);
+        this._eventBus.on("resume", this._onResume);
+        this._eventBus.on("destory", this._onDestory);
     }
-    private isAborted = false;
-    open(url: string) {
-        this._fetch(url)
+    private _onPlay() {
+        this._fetch();
     }
-    abort() {
-        this.isAborted = true;
+    private _onPause() {
+        this._isPlaying = false;
     }
-    private async _fetch(url: string) {
+    private _onResume() {
+        this._fetch();
+    }
+    private _onDestory() {
+        this._isPlaying = false;
+
+        this._eventBus.off("play", this._onPlay);
+        this._eventBus.off("pause", this._onPause);
+        this._eventBus.off("resume", this._onResume);
+        this._eventBus.off("destory", this._onDestory);
+    }
+
+    private _isPlaying = false;
+
+    private async _fetch() {
+        if (this._isPlaying) return;
+        this._isPlaying = true;
         try {
-            let res = await fetch(url);
+            let res = await fetch(this._url);
             let body = res.body!;
             let reader = body.getReader();
             for await (let chunk of new ReaderWrapper(reader)) {
-                if (this.isAborted) {
+                if (!this._isPlaying) {
                     reader.cancel();
-                    this.trigger("abort");
                     return;
                 }
-                this.trigger("progress", chunk);
+                this._eventBus.trigger("loader-chunked", chunk);
             }
-            this.trigger("loadend");
         } catch (e) {
-            this.trigger("error", e);
+            this._eventBus.trigger("error", e);
+        } finally {
+            this._isPlaying = false;
         }
     }
-}
-
-export interface LiveLoader {
-    on(eventName: "progress", callback: (data: ArrayBuffer) => void): void;
 }
