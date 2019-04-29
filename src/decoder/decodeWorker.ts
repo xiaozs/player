@@ -1,1 +1,7 @@
-console.log("test");
+let Module = {
+    onRuntimeInitialized: function () {
+
+    }
+};
+
+importScripts("./libffmpeg.js");
