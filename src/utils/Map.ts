@@ -1,12 +1,12 @@
 import { KeyValuePair } from "./KeyValuePair";
 
 export class Map<TKey, TValue> {
-    private _pairArr: KeyValuePair<TKey, TValue>[] = [];
-    private _find(key: TKey) {
-        return this._pairArr.find(it => it.key === key);
+    private pairArr: KeyValuePair<TKey, TValue>[] = [];
+    private find(key: TKey) {
+        return this.pairArr.find(it => it.key === key);
     }
     get(key: TKey) {
-        let it = this._find(key);
+        let it = this.find(key);
         if (it) {
             return it.value;
         } else {
@@ -14,23 +14,23 @@ export class Map<TKey, TValue> {
         }
     }
     set(key: TKey, value: TValue) {
-        let it = this._find(key);
+        let it = this.find(key);
         if (it) {
             it.value = value;
         } else {
-            this._pairArr.push(new KeyValuePair(key, value));
+            this.pairArr.push(new KeyValuePair(key, value));
         }
     }
     has(key: TKey) {
-        return !!this._find(key);
+        return !!this.find(key);
     }
     remove(key: TKey) {
-        this._pairArr = this._pairArr.filter(it => it.key !== key);
+        this.pairArr = this.pairArr.filter(it => it.key !== key);
     }
     removeAll() {
-        this._pairArr = [];
+        this.pairArr = [];
     }
     values() {
-        return this._pairArr.map(it => it.value);
+        return this.pairArr.map(it => it.value);
     }
 }

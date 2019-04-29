@@ -6,20 +6,20 @@ interface FunctionMeta {
 }
 
 export class EventEmitter {
-    private _eventMap = new Map<string, FunctionMeta[]>();
-    private _getMetaArr(eventName: string) {
-        let arr = this._eventMap.get(eventName);
+    private eventMap = new Map<string, FunctionMeta[]>();
+    private getMetaArr(eventName: string) {
+        let arr = this.eventMap.get(eventName);
         if (arr) {
             return arr;
         } else {
             arr = [];
-            this._eventMap.set(eventName, arr);
+            this.eventMap.set(eventName, arr);
             return arr;
         }
     }
 
     on(eventName: string, callback: Function) {
-        let arr = this._getMetaArr(eventName);
+        let arr = this.getMetaArr(eventName);
         arr.push({
             fn: callback,
             isOnce: false
@@ -27,7 +27,7 @@ export class EventEmitter {
     }
 
     once(eventName: string, callback: Function) {
-        let arr = this._getMetaArr(eventName);
+        let arr = this.getMetaArr(eventName);
         arr.push({
             fn: callback,
             isOnce: true
@@ -40,23 +40,23 @@ export class EventEmitter {
     off(eventName?: string, callback?: Function): void {
         let argsLength = arguments.length;
         if (argsLength === 0) {
-            this._eventMap = new Map();
+            this.eventMap = new Map();
         } else if (argsLength === 1) {
-            this._eventMap.remove(eventName!);
+            this.eventMap.remove(eventName!);
         } else if (argsLength === 2) {
-            let arr = this._getMetaArr(eventName!);
+            let arr = this.getMetaArr(eventName!);
             let newArr = arr.filter(it => it.fn !== callback);
-            this._eventMap.set(eventName!, newArr);
+            this.eventMap.set(eventName!, newArr);
         }
     }
 
     trigger(eventName: string, ...args: any[]) {
-        let arr = this._getMetaArr(eventName!);
+        let arr = this.getMetaArr(eventName!);
         for (let it of arr) {
             setTimeout(() => it.fn(...args));
         }
         let newArr = arr.filter(it => !it.isOnce);
-        this._eventMap.set(eventName, newArr);
+        this.eventMap.set(eventName, newArr);
     }
 }
 

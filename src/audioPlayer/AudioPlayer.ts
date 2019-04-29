@@ -1,7 +1,7 @@
 import { EventEmitter } from "../utils/EventEmitter";
 
 export class AudioPlayer extends EventEmitter {
-    constructor(private _eventBus: EventEmitter) {
+    constructor(private eventBus: EventEmitter) {
         super();
     }
 }

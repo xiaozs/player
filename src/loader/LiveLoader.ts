@@ -10,7 +10,7 @@ class ReaderWrapper {
             if (done) {
                 return;
             } else {
-                let index = this._getNewLineIndex(value);
+                let index = this.getNewLineIndex(value);
                 let dataChunk = value.slice(index + 2, value.length - 2).buffer;
                 if (dataChunk.byteLength) {
                     yield dataChunk;
@@ -20,7 +20,7 @@ class ReaderWrapper {
             }
         }
     }
-    private _getNewLineIndex(buffer: Uint8Array) {
+    private getNewLineIndex(buffer: Uint8Array) {
         let length = buffer.byteLength;
         for (let i = 0; i < length; i++) {
             if (buffer[i] === 13 && buffer[i + 1] === 10) {
@@ -32,43 +32,43 @@ class ReaderWrapper {
 }
 
 export class LiveLoader extends PlayerParts implements Loader {
-    constructor(private _url: string, eventBus: EventEmitter) {
+    constructor(private url: string, eventBus: EventEmitter) {
         super(eventBus);
     }
-    _onPlay() {
-        this._fetch();
+    protected onPlay() {
+        this.fetch();
     }
-    _onPause() {
-        this._isPlaying = false;
+    protected onPause() {
+        this.isPlaying = false;
     }
-    _onResume() {
-        this._fetch();
+    protected onResume() {
+        this.fetch();
     }
-    _onDestory() {
-        this._isPlaying = false;
-        this._offPlayerEvents();
+    protected onDestory() {
+        this.isPlaying = false;
+        this.off();
     }
 
-    private _isPlaying = false;
+    private isPlaying = false;
 
-    private async _fetch() {
-        if (this._isPlaying) return;
-        this._isPlaying = true;
+    private async fetch() {
+        if (this.isPlaying) return;
+        this.isPlaying = true;
         try {
-            let res = await fetch(this._url);
+            let res = await fetch(this.url);
             let body = res.body!;
             let reader = body.getReader();
             for await (let chunk of new ReaderWrapper(reader)) {
-                if (!this._isPlaying) {
+                if (!this.isPlaying) {
                     reader.cancel();
                     return;
                 }
-                this._eventBus.trigger("loader-chunked", chunk);
+                this.trigger("loader-chunked", chunk);
             }
         } catch (e) {
-            this._eventBus.trigger("error", e);
+            this.trigger("error", e);
         } finally {
-            this._isPlaying = false;
+            this.isPlaying = false;
         }
     }
 }

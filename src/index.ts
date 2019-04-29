@@ -3,6 +3,7 @@
 import { LiveLoader } from "./loader/LiveLoader";
 import { AudioPlayer } from "./audioPlayer/AudioPlayer";
 import { WebGLPlayer } from "./videoPlayer/WebGLPlayer";
+import { Decoder } from "./decoder/Decoder";
 import { LoaderConstructor } from "./loader/Loader";
 import { EventEmitter } from "./utils/EventEmitter";
 
@@ -13,44 +14,49 @@ export interface PlayerOptions {
 }
 
 export class Player extends EventEmitter {
-    private _eventBus = new EventEmitter();
+    private eventBus = new EventEmitter();
 
-    constructor(private _option: PlayerOptions) {
+    constructor(private option: PlayerOptions) {
         super();
-        this._generateLoader();
-        this._generateVideoPlayer();
-        this._generateAudioPlayer();
+        this.generateLoader();
+        this.generateVideoPlayer();
+        this.generateAudioPlayer();
+        this.generateDecoder();
     }
     play() {
-        this._eventBus.trigger("play");
+        this.eventBus.trigger("play");
     }
     pause() {
-        this._eventBus.trigger("pause");
+        this.eventBus.trigger("pause");
     }
     resume() {
-        this._eventBus.trigger("resume");
+        this.eventBus.trigger("resume");
     }
     destory() {
-        this._eventBus.trigger("destroy");
+        this.eventBus.trigger("destroy");
     }
 
-    private _generateLoader() {
-        let loaderType = this._option.loaderType;
-        let url = this._option.url;
+    private generateLoader() {
+        let loaderType = this.option.loaderType;
+        let url = this.option.url;
 
         if (typeof loaderType === "function") {
-            new loaderType(url, this._eventBus);
+            new loaderType(url, this.eventBus);
         }
         if (loaderType === "live") {
-            new LiveLoader(url, this._eventBus);
+            new LiveLoader(url, this.eventBus);
         }
     }
 
-    private _generateAudioPlayer() {
-        new AudioPlayer(this._eventBus);
+    private generateAudioPlayer() {
+        new AudioPlayer(this.eventBus);
     }
 
-    private _generateVideoPlayer() {
-        new WebGLPlayer(this._eventBus);
+    private generateVideoPlayer() {
+        new WebGLPlayer(this.eventBus);
+    }
+
+    private generateDecoder() {
+        new Decoder(this.eventBus);
     }
 }
