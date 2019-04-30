@@ -1,11 +1,12 @@
 import { EventEmitter } from "../utils/EventEmitter";
 import { PlayerParts } from "../utils/PlayerParts";
+import { webworkify } from "../utils/webworkify";
+import decodeWorker from "./worker/decodeWorker";
 
 class WorkerProxy extends EventEmitter {
-    private worker: Worker;
+    private worker: Worker = webworkify(decodeWorker);
     constructor() {
         super();
-        this.worker = new Worker("./decodeWorker.js");
         this.initProxy();
     }
     private post(type: string, transfer?: Transferable) {
@@ -16,12 +17,12 @@ class WorkerProxy extends EventEmitter {
         this.worker.postMessage(data, transfer && [transfer]);
     }
     private initProxy() {
-        this.init();
         this.worker.addEventListener("message", e => {
             let data = e.data;
             let type = data.type;
             this.trigger(type, data);
-        })
+        });
+        this.init();
     }
     init() {
         this.post("init");
