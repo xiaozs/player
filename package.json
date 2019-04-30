@@ -4,9 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "server": "node ./server/index.js",
-    "build": "tsc -b .",
-    "dev": "tsc -b . --watch"
+    "build": "gulp build",
+    "dev": "gulp dev"
   },
   "keywords": [],
   "author": "",

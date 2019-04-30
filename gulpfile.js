@@ -19,7 +19,7 @@ gulp.task("build", ["clear", "copy-worker"], function () {
 });
 gulp.task("watch-file", function () {
     gulp.start("build");
-    gulp.watch("./src/**/*", ["build"]);
+    gulp.watch(["./src/**/*", "./tsconfig.json"], ["build"]);
 })
 gulp.task("watch-server", function () {
     var child = childProcess.fork("./server/index.js");
