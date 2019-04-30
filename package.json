@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "server": "node ./server/index.js",
-    "build": "tsc -p .",
-    "dev": "tsc -p . --watch"
+    "build": "tsc -b .",
+    "dev": "tsc -b . --watch"
   },
   "keywords": [],
   "author": "",

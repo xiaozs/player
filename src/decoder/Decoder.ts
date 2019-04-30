@@ -1,10 +1,8 @@
 import { EventEmitter } from "../utils/EventEmitter";
 import { PlayerParts } from "../utils/PlayerParts";
-import { webworkify } from "../utils/webworkify";
-import decodeWorker from "./worker/decodeWorker";
 
 class WorkerProxy extends EventEmitter {
-    private worker: Worker = webworkify(decodeWorker);
+    private worker: Worker = new Worker("./worker.js");
     constructor() {
         super();
         this.initProxy();
