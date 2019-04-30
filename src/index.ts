@@ -11,6 +11,7 @@ export interface PlayerOptions {
     url: string;
     canvas: HTMLCanvasElement;
     loaderType: string | LoaderConstructor;
+    workerUrl: string;
 }
 
 export class Player extends EventEmitter {
@@ -57,6 +58,6 @@ export class Player extends EventEmitter {
     }
 
     private generateDecoder() {
-        new Decoder(this.eventBus);
+        new Decoder(this.option.workerUrl, this.eventBus);
     }
 }

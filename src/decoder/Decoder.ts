@@ -2,10 +2,10 @@ import { EventEmitter } from "../utils/EventEmitter";
 import { PlayerParts } from "../utils/PlayerParts";
 
 class WorkerProxy extends EventEmitter {
-    private worker: Worker = new Worker("./worker.js");
-    constructor() {
+    private worker!: Worker;
+    constructor(workerUrl: string) {
         super();
-        this.initProxy();
+        this.initProxy(workerUrl);
     }
     private post(type: string, transfer?: Transferable) {
         let data = {
@@ -14,7 +14,8 @@ class WorkerProxy extends EventEmitter {
         };
         this.worker.postMessage(data, transfer && [transfer]);
     }
-    private initProxy() {
+    private initProxy(workerUrl: string) {
+        this.worker = new Worker(workerUrl)
         this.worker.addEventListener("message", e => {
             let data = e.data;
             let type = data.type;
@@ -56,13 +57,13 @@ class WorkerProxy extends EventEmitter {
 
 export class Decoder extends PlayerParts {
     private worker!: WorkerProxy;
-    constructor(eventBus: EventEmitter) {
+    constructor(workerUrl: string, eventBus: EventEmitter) {
         super(eventBus);
-        this.initWorker();
+        this.initWorker(workerUrl);
     }
 
-    private initWorker() {
-        this.worker = new WorkerProxy();
+    private initWorker(workerUrl: string) {
+        this.worker = new WorkerProxy(workerUrl);
         this.worker.on("decoder-videoFrame", (data: any) => this.trigger("decoder-videoFrame", data));
         this.worker.on("decoder-audioFrame", (data: any) => this.trigger("decoder-audioFrame", data));
         this.on("loader-chunked", this.onChunked.bind(this));
