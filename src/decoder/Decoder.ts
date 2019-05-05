@@ -1,5 +1,6 @@
 import { EventEmitter } from "../utils/EventEmitter";
 import { PlayerParts } from "../utils/PlayerParts";
+import { listen } from "../utils/listen";
 
 class WorkerProxy extends EventEmitter {
     private worker!: Worker;
@@ -66,24 +67,17 @@ export class Decoder extends PlayerParts {
         this.worker = new WorkerProxy(workerUrl);
         this.worker.on("decoder-videoFrame", (data: any) => this.trigger("decoder-videoFrame", data));
         this.worker.on("decoder-audioFrame", (data: any) => this.trigger("decoder-audioFrame", data));
-        this.on("loader-chunked", this.onChunked.bind(this));
     }
 
-    protected onPlay(): void {
-        //啥都不干
-    }
-    protected onPause(): void {
-        //啥都不干
-    }
-    protected onResume(): void {
-        //啥都不干
-    }
-    protected onDestory(): void {
+    @listen("destroy")
+    private onDestory(): void {
         this.off();
         this.worker.destroy();
     }
 
+    @listen("loader-chunked")
     private onChunked(chunk: ArrayBuffer) {
+        console.log(chunk.byteLength);
         this.worker.decode(chunk);
     }
 }

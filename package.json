@@ -20,5 +20,8 @@
     "portscanner": "^2.2.0",
     "requirejs": "^2.3.6",
     "typescript": "^3.4.5"
+  },
+  "dependencies": {
+    "reflect-metadata": "^0.1.13"
   }
 }

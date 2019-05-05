@@ -1,6 +1,7 @@
 import { EventEmitter } from "../utils/EventEmitter";
 import { PlayerParts } from "../utils/PlayerParts";
 import { Loader } from "./Loader";
+import { listen } from "../utils/listen";
 
 class ReaderWrapper {
     constructor(private reader: ReadableStreamDefaultReader<Uint8Array>) { }
@@ -35,16 +36,24 @@ export class LiveLoader extends PlayerParts implements Loader {
     constructor(private url: string, eventBus: EventEmitter) {
         super(eventBus);
     }
-    protected onPlay() {
+
+    @listen("play")
+    private onPlay() {
         this.fetch();
     }
-    protected onPause() {
+
+    @listen("pause")
+    private onPause() {
         this.isPlaying = false;
     }
-    protected onResume() {
+
+    @listen("resume")
+    private onResume() {
         this.fetch();
     }
-    protected onDestory() {
+
+    @listen("destory")
+    private onDestory() {
         this.isPlaying = false;
         this.off();
     }
