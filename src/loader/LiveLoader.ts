@@ -43,11 +43,6 @@ export class LiveLoader extends PlayerParts implements Loader {
         this.isPlaying = false;
     }
 
-    @listen("resume")
-    private onResume() {
-        this.fetch();
-    }
-
     @listen("destory")
     private onDestory() {
         this.isPlaying = false;

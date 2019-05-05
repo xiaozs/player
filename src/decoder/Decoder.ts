@@ -64,6 +64,7 @@ export class Decoder extends PlayerParts {
     }
 
     private initWorker(workerUrl: string) {
+        //todo, 这个worker肯定要大改的
         this.worker = new WorkerProxy(workerUrl);
         this.worker.on("decoder-videoFrame", (data: any) => this.trigger("decoder-videoFrame", data));
         this.worker.on("decoder-audioFrame", (data: any) => this.trigger("decoder-audioFrame", data));

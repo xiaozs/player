@@ -32,9 +32,6 @@ export class Player extends EventEmitter {
     pause() {
         this.eventBus.trigger("pause");
     }
-    resume() {
-        this.eventBus.trigger("resume");
-    }
     destory() {
         this.eventBus.trigger("destroy");
     }
@@ -56,7 +53,8 @@ export class Player extends EventEmitter {
     }
 
     private generateVideoPlayer() {
-        new WebGLPlayer(this.eventBus);
+        let canvas = this.option.canvas;
+        new WebGLPlayer(canvas, this.eventBus);
     }
 
     private generateDecoder() {
