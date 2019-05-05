@@ -13,11 +13,7 @@ class ReaderWrapper {
             } else {
                 let index = this.getNewLineIndex(value);
                 let dataChunk = value.slice(index + 2, value.length - 2).buffer;
-                if (dataChunk.byteLength) {
-                    yield dataChunk;
-                } else {
-                    return;
-                }
+                yield dataChunk;
             }
         }
     }

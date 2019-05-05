@@ -6,6 +6,7 @@ import { WebGLPlayer } from "./videoPlayer/WebGLPlayer";
 import { Decoder } from "./decoder/Decoder";
 import { LoaderConstructor } from "./loader/Loader";
 import { EventEmitter } from "./utils/EventEmitter";
+import { LiveStore } from "./store/LiveStore";
 
 export interface PlayerOptions {
     url: string;
@@ -23,6 +24,7 @@ export class Player extends EventEmitter {
         this.generateVideoPlayer();
         this.generateAudioPlayer();
         this.generateDecoder();
+        this.generateStore();
     }
     play() {
         this.eventBus.trigger("play");
@@ -59,5 +61,12 @@ export class Player extends EventEmitter {
 
     private generateDecoder() {
         new Decoder(this.option.workerUrl, this.eventBus);
+    }
+
+    private generateStore() {
+        let loaderType = this.option.loaderType;
+        if (loaderType === "live") {
+            new LiveStore(this.eventBus);
+        }
     }
 }

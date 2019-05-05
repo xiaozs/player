@@ -4,6 +4,12 @@ var childProcess = require("child_process")
 var tsc = require("gulp-typescript");
 tsc = tsc.createProject("./tsconfig.json");
 
+function swallowError(error) {
+    // If you want details of the error in the console
+    console.error(error.toString())
+    this.emit('end')
+}
+
 gulp.task("default", ["build"]);
 gulp.task("dev", ["watch-file", "watch-server"]);
 gulp.task("clear", function () {
@@ -15,6 +21,7 @@ gulp.task("copy-worker", ["clear"], function () {
 gulp.task("build", ["clear", "copy-worker"], function () {
     return gulp.src("./src/**/*.ts")
         .pipe(tsc())
+        .on('error', swallowError)
         .pipe(gulp.dest("."))
 });
 gulp.task("watch-file", function () {
