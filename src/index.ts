@@ -1,5 +1,3 @@
-/// <amd-module name="myPlayer" />
-
 import { LiveLoader } from "./loader/LiveLoader";
 import { AudioPlayer } from "./audioPlayer/AudioPlayer";
 import { WebGLPlayer } from "./videoPlayer/WebGLPlayer";
@@ -7,6 +5,7 @@ import { Decoder } from "./decoder/Decoder";
 import { LoaderConstructor } from "./loader/Loader";
 import { EventEmitter } from "./utils/EventEmitter";
 import { LiveStore } from "./store/LiveStore";
+import "reflect-metadata";
 
 export interface PlayerOptions {
     url: string;

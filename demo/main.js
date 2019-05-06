@@ -1,4 +1,4 @@
-require(["myPlayer"], function (myPlayer) {
+require(["../dist/index"], function (myPlayer) {
     var player = new myPlayer.Player({
         url: "./video.mp4",
         loaderType: "live",

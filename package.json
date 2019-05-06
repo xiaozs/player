@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "browserify": "^16.2.3",
     "chunks-stream": "^1.1.0",
     "del": "^4.1.1",
     "express": "^4.16.4",
@@ -18,9 +19,11 @@
     "gulp-typescript": "^5.0.1",
     "portscanner": "^2.2.0",
     "requirejs": "^2.3.6",
+    "tsify": "^4.0.1",
     "typescript": "^3.4.5"
   },
   "dependencies": {
-    "reflect-metadata": "^0.1.13"
+    "reflect-metadata": "^0.1.13",
+    "tslib": "^1.9.3"
   }
 }

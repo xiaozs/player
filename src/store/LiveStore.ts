@@ -19,7 +19,7 @@ export class LiveStore extends PlayerParts {
     private onPlay() {
         if (this.timer) return;
         //todo,这个魔数要由帧率之类的计算出来
-        this.timer = setInterval(this.findCurrentFrame.bind(this), 1000 / 60);
+        this.timer = window.setInterval(this.findCurrentFrame.bind(this), 1000 / 60);
     }
 
     @listen("pause")
