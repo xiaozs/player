@@ -33,7 +33,13 @@ async function main() {
     })
 
     app.use(express.static(demoPath));
-    app.use("/dist", express.static(distPath));
+    app.use("/dist", express.static(distPath, {
+        setHeaders(res, path) {
+            if (/\.wasm$/.test(path)) {
+                res.setHeader("content-type", "application/wasm")
+            }
+        }
+    }));
     app.use("/node_modules", express.static(nodeModulesPath));
 
     app.listen(port, function () {

@@ -7,11 +7,17 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Program",
+            "name": "构建",
             "program": "${workspaceFolder}/node_modules/gulp/bin/gulp.js",
             "args": [
                 "dev"
             ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "服务器",
+            "program": "${workspaceFolder}/server/index.js"
         }
     ]
 }
