@@ -3,7 +3,7 @@ import { PlayerParts } from "../utils/PlayerParts";
 import { listen } from "../utils/listen";
 
 export class WebGLPlayer extends PlayerParts {
-    private gl = this.canvas.getContext("webgl") || this.canvas.getContext("experimental-webgl");
+    private gl = this.canvas.getContext("webgl")! || this.canvas.getContext("experimental-webgl")!;
     private y!: Texture;
     private u!: Texture;
     private v!: Texture;
@@ -14,15 +14,10 @@ export class WebGLPlayer extends PlayerParts {
     }
 
     private initGL() {
-        if (!this.gl) {
-            console.log("[ER] WebGL not supported.");
-            return;
-        }
-
-        var gl = this.gl;
+        let gl = this.gl;
         gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
-        var program = gl.createProgram()!;
-        var vertexShaderSource = [
+        let program = gl.createProgram()!;
+        let vertexShaderSource = [
             "attribute highp vec4 aVertexPosition;",
             "attribute vec2 aTextureCoord;",
             "varying highp vec2 vTextureCoord;",
@@ -31,10 +26,10 @@ export class WebGLPlayer extends PlayerParts {
             " vTextureCoord = aTextureCoord;",
             "}"
         ].join("\n");
-        var vertexShader = gl.createShader(gl.VERTEX_SHADER)!;
+        let vertexShader = gl.createShader(gl.VERTEX_SHADER)!;
         gl.shaderSource(vertexShader, vertexShaderSource);
         gl.compileShader(vertexShader);
-        var fragmentShaderSource = [
+        let fragmentShaderSource = [
             "precision highp float;",
             "varying lowp vec2 vTextureCoord;",
             "uniform sampler2D YTexture;",
@@ -52,26 +47,26 @@ export class WebGLPlayer extends PlayerParts {
             "}"
         ].join("\n");
 
-        var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER)!;
+        let fragmentShader = gl.createShader(gl.FRAGMENT_SHADER)!;
         gl.shaderSource(fragmentShader, fragmentShaderSource);
         gl.compileShader(fragmentShader);
         gl.attachShader(program, vertexShader);
         gl.attachShader(program, fragmentShader);
         gl.linkProgram(program);
         gl.useProgram(program);
-        if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-            console.log("[ER] Shader link failed.");
-        }
-        var vertexPositionAttribute = gl.getAttribLocation(program, "aVertexPosition");
+
+        gl.getProgramParameter(program, gl.LINK_STATUS);
+
+        let vertexPositionAttribute = gl.getAttribLocation(program, "aVertexPosition");
         gl.enableVertexAttribArray(vertexPositionAttribute);
-        var textureCoordAttribute = gl.getAttribLocation(program, "aTextureCoord");
+        let textureCoordAttribute = gl.getAttribLocation(program, "aTextureCoord");
         gl.enableVertexAttribArray(textureCoordAttribute);
 
-        var verticesBuffer = gl.createBuffer();
+        let verticesBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, verticesBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([1.0, 1.0, 0.0, -1.0, 1.0, 0.0, 1.0, -1.0, 0.0, -1.0, -1.0, 0.0]), gl.STATIC_DRAW);
         gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
-        var texCoordBuffer = gl.createBuffer();
+        let texCoordBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0]), gl.STATIC_DRAW);
         gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
@@ -85,12 +80,7 @@ export class WebGLPlayer extends PlayerParts {
     }
 
     private renderFrame(videoFrame: Uint8Array, width: number, height: number, uOffset: number, vOffset: number) {
-        if (!this.gl) {
-            console.log("[ER] Render frame failed due to WebGL not supported.");
-            return;
-        }
-
-        var gl = this.gl;
+        let gl = this.gl;
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
         gl.clearColor(0.0, 0.0, 0.0, 0.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
@@ -124,13 +114,13 @@ class Texture {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     }
     bind(n: number, program: WebGLProgram, name: string) {
-        var gl = this.gl;
+        let gl = this.gl;
         gl.activeTexture([gl.TEXTURE0, gl.TEXTURE1, gl.TEXTURE2][n]);
         gl.bindTexture(gl.TEXTURE_2D, this.texture);
         gl.uniform1i(gl.getUniformLocation(program, name), n);
     }
     fill(width: number, height: number, data: ArrayBufferView) {
-        var gl = this.gl;
+        let gl = this.gl;
         gl.bindTexture(gl.TEXTURE_2D, this.texture);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, width, height, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, data);
     };
