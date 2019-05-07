@@ -5,6 +5,7 @@ var tsc = require("gulp-typescript");
 tsc = tsc.createProject("./tsconfig.json");
 var tsify = require("tsify");
 var browserify = require("browserify");
+var exorcist = require('exorcist');
 var fs = require("fs");
 
 function swallowError(error) {
@@ -22,11 +23,12 @@ gulp.task("copy-worker", ["clear"], function () {
     return gulp.src("./src/decoder/worker/*").pipe(gulp.dest("./dist"));
 });
 gulp.task("build", ["clear", "copy-worker"], function () {
-    return browserify({ standalone: "myPlayer" })
+    return browserify({ standalone: "myPlayer", debug: true })
         .add("./src/index.ts")
         .plugin(tsify)
         .bundle()
         .on("error", swallowError)
+        .pipe(exorcist("./dist/index.js.map"))
         .pipe(fs.createWriteStream("./dist/index.js"));
 });
 gulp.task("watch-file", function () {

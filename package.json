@@ -2,11 +2,14 @@
   "name": "my-player",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "./dist/index.js",
   "scripts": {
     "build": "gulp build",
     "dev": "gulp dev"
   },
+  "files": [
+    "./dist"
+  ],
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -14,6 +17,7 @@
     "browserify": "^16.2.3",
     "chunks-stream": "^1.1.0",
     "del": "^4.1.1",
+    "exorcist": "^1.0.1",
     "express": "^4.16.4",
     "gulp": "^3.9.1",
     "gulp-typescript": "^5.0.1",

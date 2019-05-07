@@ -2,23 +2,32 @@ import { LiveLoader } from "./loader/LiveLoader";
 import { AudioPlayer } from "./audioPlayer/AudioPlayer";
 import { WebGLPlayer } from "./videoPlayer/WebGLPlayer";
 import { Decoder } from "./decoder/Decoder";
-import { LoaderConstructor } from "./loader/Loader";
 import { EventEmitter } from "./utils/EventEmitter";
 import { LiveStore } from "./store/LiveStore";
 import "reflect-metadata";
 
 export interface PlayerOptions {
     url: string;
+    retryTimes?: number;
+    retryDelay?: number;
+
     canvas: HTMLCanvasElement;
-    loaderType: string | LoaderConstructor;
+    loaderType: string;
     workerUrl: string;
+}
+
+let defaultOptions = {
+    retryTimes: 5,
+    retryDelay: 500
 }
 
 export class Player extends EventEmitter {
     private eventBus = new EventEmitter();
-
-    constructor(private option: PlayerOptions) {
+    private option: Required<PlayerOptions>;
+    constructor(option: PlayerOptions) {
         super();
+        this.option = Object.assign({}, defaultOptions, option);
+
         this.generateLoader();
         this.generateVideoPlayer();
         this.generateAudioPlayer();
@@ -36,14 +45,10 @@ export class Player extends EventEmitter {
     }
 
     private generateLoader() {
-        let loaderType = this.option.loaderType;
-        let url = this.option.url;
+        let { loaderType, retryTimes, retryDelay, url } = this.option;
 
-        if (typeof loaderType === "function") {
-            new loaderType(url, this.eventBus);
-        }
         if (loaderType === "live") {
-            new LiveLoader(url, this.eventBus);
+            new LiveLoader({ url, retryTimes, retryDelay }, this.eventBus);
         }
     }
 
@@ -61,7 +66,7 @@ export class Player extends EventEmitter {
     }
 
     private generateStore() {
-        let loaderType = this.option.loaderType;
+        let { loaderType } = this.option;
         if (loaderType === "live") {
             new LiveStore(this.eventBus);
         }

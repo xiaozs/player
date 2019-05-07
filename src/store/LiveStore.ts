@@ -34,7 +34,6 @@ export class LiveStore extends PlayerParts {
     }
 
     private findCurrentFrame() {
-        console.log("test");
         let now = new Date();
         //todo, 找出当前应该播放的帧数
         //todo, 用事件打出去
