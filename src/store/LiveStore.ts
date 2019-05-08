@@ -1,18 +1,16 @@
 import { PlayerParts } from "../utils/PlayerParts";
 import { EventEmitter } from "../utils/EventEmitter";
 import { listen } from "../utils/listen";
-
-interface StoreChunk {
-    chunk: ArrayBuffer;
-    meta: any;
-}
+import { VideoFrame, AudioFrame } from "../frame";
 
 export class LiveStore extends PlayerParts {
     constructor(eventBus: EventEmitter) {
         super(eventBus);
     }
-    private videoChunkStore: StoreChunk[] = [];
-    private audioChunkStore: StoreChunk[] = [];
+
+    private videoFrameStore: VideoFrame[] = [];
+    private audioFrameStore: AudioFrame[] = [];
+
     private timer?: number;
 
     @listen("play")
@@ -43,18 +41,13 @@ export class LiveStore extends PlayerParts {
     }
 
     @listen("decoder-videoFrame")
-    private onVideoFrame(chunk: ArrayBuffer) {
-        this.videoChunkStore.push({
-            chunk,
-            meta: {}
-        })
+    private onVideoFrame(frame: VideoFrame) {
+        // 由于是直播，所以见一帧打一帧
+        this.trigger("store-videoFrame", frame.data);
     }
 
     @listen("decoder-audioFrame")
-    private onAudioFrame(chunk: ArrayBuffer) {
-        this.audioChunkStore.push({
-            chunk,
-            meta: {}
-        })
+    private onAudioFrame(frame: AudioFrame) {
+
     }
 }

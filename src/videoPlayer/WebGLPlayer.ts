@@ -1,6 +1,7 @@
 import { EventEmitter } from "../utils/EventEmitter";
 import { PlayerParts } from "../utils/PlayerParts";
 import { listen } from "../utils/listen";
+import { VideoFrame } from "../frame";
 
 export class WebGLPlayer extends PlayerParts {
     private gl = this.canvas.getContext("webgl")! || this.canvas.getContext("experimental-webgl")!;
@@ -79,7 +80,10 @@ export class WebGLPlayer extends PlayerParts {
         this.v.bind(2, program, "VTexture");
     }
 
-    private renderFrame(videoFrame: Uint8Array, width: number, height: number, uOffset: number, vOffset: number) {
+    private renderFrame(videoFrame: Uint8Array, width: number, height: number) {
+        let uOffset = width * height;
+        let vOffset = uOffset / 4;
+
         let gl = this.gl;
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
         gl.clearColor(0.0, 0.0, 0.0, 0.0);
@@ -93,9 +97,9 @@ export class WebGLPlayer extends PlayerParts {
     };
 
     @listen("store-videoFrame")
-    private onFrame(chunk: ArrayBuffer) {
-        //todo, 用那个webgl.js来解析、渲染chunk吧
-        //this.renderFrame();
+    private onFrame(frame: VideoFrame) {
+        let { data, meta: { width, height } } = frame;
+        this.renderFrame(data, width, height);
     }
 }
 
