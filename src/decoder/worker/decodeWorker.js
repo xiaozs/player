@@ -70,40 +70,27 @@ CacheBuffer.prototype.free = function () {
     this.buffer = null;
 }
 
-
-function deferFactory() {
-    var resolve, reject;
-    var promise = new Promise(function (resolveP, rejectP) {
-        resolve = resolveP;
-        reject = rejectP;
-    });
-    return {
-        promise: promise,
-        resolve: resolve,
-        reject: reject
-    }
-}
-
-
 /**
  * 真正的开始
  */
-
-var defer = deferFactory();
-var init = defer.promise;
 var decoder = null;
+
+var isInited = false;
+var isFailed = false;
+var mailBox = [];
 
 function main() {
     try {
         decoder = new Decoder();
         decoder.initDecoder(videoCallback, audioCallback);
-        defer.resolve();
+        clearMailBox();
+        isInited = true;
     } catch (e) {
         self.postMessage({
             type: "error",
             data: e
         })
-        defer.reject();
+        this.isFailed = true;
     }
 }
 
@@ -137,25 +124,36 @@ function audioCallback(decoderId, buff, size, pts, paramJsonStr) {
     }, [data.buffer])
 }
 
+function clearMailBox() {
+    mailBox.forEach(it => messageHandler(it));
+    mailbox = [];
+}
+
+function messageHandler(e) {
+    var type = e.data.type;
+    var data = e.data.data;
+    switch (type) {
+        case "uninitDecoder":
+            decoder.uninitDecoder();
+            break;
+        case "openDecoder":
+            decoder.openDecoder(data.decoderId, data.fileName);
+            break;
+        case "closeDecoder":
+            decoder.closeDecoder(data.decoderId);
+            break;
+        case "inputData":
+            decoder.inputData(data.decoderId, data.data);
+            break;
+    }
+}
+
 self.addEventListener("message", function (e) {
-    init.then(function () {
-        var type = e.data.type;
-        var data = e.data.data;
-        switch (type) {
-            case "uninitDecoder":
-                decoder.uninitDecoder();
-                break;
-            case "openDecoder":
-                decoder.openDecoder(data.decoderId, data.fileName);
-                break;
-            case "closeDecoder":
-                decoder.closeDecoder(data.decoderId);
-                break;
-            case "inputData":
-                decoder.inputData(data.decoderId, data.data);
-                break;
-        }
-    })
+    if (isInited) {
+        messageHandler(e);
+    } else if (!isFailed) {
+        mailBox.push(e);
+    }
 })
 
 self.Module = {
