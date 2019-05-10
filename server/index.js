@@ -15,22 +15,20 @@ async function main() {
     var distPath = path.resolve(staticPath, "./dist");
     var nodeModulesPath = path.resolve(staticPath, "./node_modules");
 
-    app.use("*.mp4", function (req, res) {
-        // res.connection.setNoDelay(true);
-
-        var filePath = path.resolve(demoPath, "." + req.originalUrl);
-        res.setHeader("Transfer-Encoding", "chunked");
-        fs.createReadStream(filePath)
-            .pipe(new chunksStream(10000))
-            .pipe(new Transform({
-                transform(chunk, _, callback) {
-                    setTimeout(() => {
-                        callback(null, chunk);
-                    }, 1000)
-                }
-            }))
-            .pipe(res);
-    })
+    // app.use("*.mp4", function (req, res) {
+    //     var filePath = path.resolve(demoPath, "." + req.originalUrl);
+    //     res.setHeader("Transfer-Encoding", "chunked");
+    //     fs.createReadStream(filePath)
+    //         .pipe(new chunksStream(1024 * 100))
+    //         .pipe(new Transform({
+    //             transform(chunk, _, callback) {
+    //                 setTimeout(() => {
+    //                     callback(null, chunk);
+    //                 }, 100)
+    //             }
+    //         }))
+    //         .pipe(res);
+    // })
 
     app.use(express.static(demoPath));
     app.use("/dist", express.static(distPath, {

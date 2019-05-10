@@ -1,9 +1,10 @@
 import { EventEmitter } from "../utils/EventEmitter";
 import { PlayerParts } from "../utils/PlayerParts";
 import { listen } from "../utils/listen";
+import { PlayerOptions } from '..';
 
 class DecoderProxy {
-    private static decoderId = 0;
+    private static decoderId = 1;
     private decoderId: number;
     constructor(private worker: Worker, fileName: string) {
         this.decoderId = DecoderProxy.decoderId++;
@@ -31,12 +32,12 @@ class DecoderProxy {
 export class Decoder extends PlayerParts {
     private worker!: Worker;
     private decoderProxys: DecoderProxy[] = [];
-    constructor(workerUrl: string, eventBus: EventEmitter) {
+    constructor(options: PlayerOptions, eventBus: EventEmitter) {
         super(eventBus);
-        this.initWorker(workerUrl);
+        this.initWorker(options.workerUrl);
 
         //todo,先写死一路，写死类型
-        this.decoderProxys.push(new DecoderProxy(this.worker, "mp4"));
+        this.decoderProxys.push(new DecoderProxy(this.worker, options.fileName));
     }
 
     private initWorker(workerUrl: string) {
@@ -62,7 +63,7 @@ export class Decoder extends PlayerParts {
             type: "inputData",
             data: {
                 //todo,先写死一路
-                decoderId: 0,
+                decoderId: 1,
                 data: chunk
             }
         }, [chunk]);

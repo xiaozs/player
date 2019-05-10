@@ -10,20 +10,9 @@ class ReaderWrapper {
             if (done) {
                 return;
             } else {
-                let index = this.getNewLineIndex(value);
-                let dataChunk = value.slice(index + 2, value.length - 2).buffer;
-                yield dataChunk;
+                yield value.buffer;
             }
         }
-    }
-    private getNewLineIndex(buffer: Uint8Array) {
-        let length = buffer.byteLength;
-        for (let i = 0; i < length; i++) {
-            if (buffer[i] === 13 && buffer[i + 1] === 10) {
-                return i;
-            }
-        }
-        return -1;
     }
 }
 export interface LiveLoaderOptions {
@@ -67,7 +56,7 @@ export class LiveLoader extends PlayerParts {
     private async fetch() {
         try {
             this.isPlaying = true;
-            let res = await fetch(this.options.url);
+            let res = await fetch(this.options.url, { mode: "cors" });
             let body = res.body!;
             let reader = body.getReader();
             this.hasRetryTimes = 0;

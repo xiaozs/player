@@ -86,9 +86,10 @@ function main() {
         clearMailBox();
         isInited = true;
     } catch (e) {
+        console.error(e);
         self.postMessage({
             type: "error",
-            data: e
+            data: JSON.stringify(e)
         })
         this.isFailed = true;
     }

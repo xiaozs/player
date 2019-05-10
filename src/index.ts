@@ -7,6 +7,7 @@ import { LiveStore } from "./store/LiveStore";
 import "reflect-metadata";
 
 export interface PlayerOptions {
+    fileName: string;
     url: string;
     retryTimes?: number;
     retryDelay?: number;
@@ -62,7 +63,7 @@ export class Player extends EventEmitter {
     }
 
     private generateDecoder() {
-        new Decoder(this.option.workerUrl, this.eventBus);
+        new Decoder(this.option, this.eventBus);
     }
 
     private generateStore() {
