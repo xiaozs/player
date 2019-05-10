@@ -1,20 +1,22 @@
 import { LiveLoader } from "./loader/LiveLoader";
+import { HttpChunkLoader } from "./loader/HttpChunkLoader";
 import { AudioPlayer } from "./audioPlayer/AudioPlayer";
 import { WebGLPlayer } from "./videoPlayer/WebGLPlayer";
 import { Decoder } from "./decoder/Decoder";
 import { EventEmitter } from "./utils/EventEmitter";
 import { LiveStore } from "./store/LiveStore";
+import { NormalStore } from "./store/NormalStore";
 import "reflect-metadata";
 
 export interface PlayerOptions {
-    fileName: string;
-    url: string;
-    retryTimes?: number;
-    retryDelay?: number;
+    readonly fileName: string;
+    readonly url: string;
+    readonly retryTimes?: number;
+    readonly retryDelay?: number;
 
-    canvas: HTMLCanvasElement;
-    loaderType: string;
-    workerUrl: string;
+    readonly canvas: HTMLCanvasElement;
+    readonly loaderType: string;
+    readonly workerUrl: string;
 }
 
 let defaultOptions = {
@@ -50,6 +52,8 @@ export class Player extends EventEmitter {
 
         if (loaderType === "live") {
             new LiveLoader({ url, retryTimes, retryDelay }, this.eventBus);
+        } else {
+            new HttpChunkLoader({ url, retryTimes, retryDelay }, this.eventBus);
         }
     }
 
@@ -70,6 +74,8 @@ export class Player extends EventEmitter {
         let { loaderType } = this.option;
         if (loaderType === "live") {
             new LiveStore(this.eventBus);
+        } else {
+            new NormalStore(this.eventBus);
         }
     }
 }

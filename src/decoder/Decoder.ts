@@ -5,7 +5,7 @@ import { PlayerOptions } from '..';
 
 class DecoderProxy {
     private static decoderId = 1;
-    private decoderId: number;
+    readonly decoderId: number;
     constructor(private worker: Worker, fileName: string) {
         this.decoderId = DecoderProxy.decoderId++;
         this.openDecoder(fileName);
@@ -26,6 +26,15 @@ class DecoderProxy {
                 decoderId: this.decoderId
             }
         })
+    }
+    inputData(chunk: ArrayBuffer) {
+        this.worker.postMessage({
+            type: "inputData",
+            data: {
+                decoderId: this.decoderId,
+                data: chunk
+            }
+        }, [chunk]);
     }
 }
 
@@ -50,6 +59,10 @@ export class Decoder extends PlayerParts {
         });
     }
 
+    private getDecoderProxy(decoderId: number) {
+        return this.decoderProxys.find(it => it.decoderId === decoderId);
+    }
+
     @listen("destroy")
     private onDestory(): void {
         this.off();
@@ -59,13 +72,8 @@ export class Decoder extends PlayerParts {
 
     @listen("loader-chunked")
     private onChunked(chunk: ArrayBuffer) {
-        this.worker.postMessage({
-            type: "inputData",
-            data: {
-                //todo,先写死一路
-                decoderId: 1,
-                data: chunk
-            }
-        }, [chunk]);
+        //todo,先写死一路
+        let proxy = this.getDecoderProxy(1);
+        proxy && proxy.inputData(chunk);
     }
 }

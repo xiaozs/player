@@ -9,7 +9,7 @@ export interface LiveLoaderOptions {
     retryDelay: number;
 }
 
-export class LiveLoader extends PlayerParts {
+export class HttpChunkLoader extends PlayerParts {
     constructor(private options: LiveLoaderOptions, eventBus: EventEmitter) {
         super(eventBus);
     }
