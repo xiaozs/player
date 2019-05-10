@@ -95,10 +95,11 @@ export class WebGLPlayer extends PlayerParts {
 
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     };
-
+    
     @listen("store-videoFrame")
     private onFrame(frame: VideoFrame) {
-        let { data, meta: { width, height } } = frame;
+        console.log(frame.meta);
+        let { data, meta: { width, heigh: height } } = frame;
         this.renderFrame(data, width, height);
     }
 }

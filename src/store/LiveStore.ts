@@ -43,7 +43,7 @@ export class LiveStore extends PlayerParts {
     @listen("decoder-videoFrame")
     private onVideoFrame(frame: VideoFrame) {
         // 由于是直播，所以见一帧打一帧
-        this.trigger("store-videoFrame", frame.data);
+        this.trigger("store-videoFrame", frame);
     }
 
     @listen("decoder-audioFrame")

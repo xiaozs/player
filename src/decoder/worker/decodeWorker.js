@@ -70,6 +70,22 @@ CacheBuffer.prototype.free = function () {
     this.buffer = null;
 }
 
+var td = new TextDecoder();
+function getJSON(strPointer) {
+    var endIndex = strPointer;
+    for (var i = strPointer; i < Module.HEAPU8.length; i++) {
+        var it = Module.HEAPU8[i];
+        if (it === 0) {
+            endIndex = i;
+            break;
+        }
+    }
+    var outArray = Module.HEAPU8.subarray(strPointer, endIndex);
+    var data = new Uint8Array(outArray);
+    var paramJsonStr = td.decode(data);
+    return JSON.parse(paramJsonStr);
+}
+
 /**
  * 真正的开始
  */
@@ -98,7 +114,7 @@ function main() {
 function videoCallback(decoderId, buff, size, pts, paramJsonStr) {
     var outArray = Module.HEAPU8.subarray(buff, buff + size);
     var data = new Uint8Array(outArray);
-    var meta = JSON.stringify(paramJsonStr);
+    var meta = getJSON(paramJsonStr);
     self.postMessage({
         type: "decoder-videoFrame",
         data: {
@@ -113,7 +129,7 @@ function videoCallback(decoderId, buff, size, pts, paramJsonStr) {
 function audioCallback(decoderId, buff, size, pts, paramJsonStr) {
     var outArray = Module.HEAPU8.subarray(buff, buff + size);
     var data = new Uint8Array(outArray);
-    var meta = JSON.stringify(paramJsonStr);
+    var meta = getJSON(paramJsonStr);
     self.postMessage({
         type: "decoder-audioFrame",
         data: {
