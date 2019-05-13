@@ -24,16 +24,16 @@ export interface AudioMeta {
     bit_rate: number;
 }
 
-export interface VideoFrame {
-    decoderId: number;
-    data: Uint8Array;
+export interface VideoFrame extends Frame {
     meta: VideoMeta;
-    pts: number;
 }
 
-export interface AudioFrame {
+export interface AudioFrame extends Frame {
+    meta: AudioMeta;
+}
+
+export interface Frame {
     decoderId: number;
     data: Uint8Array;
-    meta: AudioMeta;
     pts: number;
 }

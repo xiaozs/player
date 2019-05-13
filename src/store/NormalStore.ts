@@ -1,13 +1,7 @@
 import { PlayerParts } from "../utils/PlayerParts";
 import { EventEmitter } from "../utils/EventEmitter";
 import { listen } from "../utils/listen";
-import { VideoFrame, AudioFrame } from "../frame";
-
-interface TimePoint {
-    readonly pts: number;
-    readonly timestamp: number;
-}
-
+import { VideoFrame, AudioFrame, Frame } from "../frame";
 
 export class NormalStore extends PlayerParts {
     constructor(eventBus: EventEmitter) {
@@ -19,26 +13,35 @@ export class NormalStore extends PlayerParts {
 
     private vTimer?: number;
     private aTimer?: number;
-    private startPoint?: TimePoint;
-    private isPlaying = false;
     private lastPts = 0;
+    private startTimestamp = +new Date();
+
+    private isPlaying = false;
 
     @listen("seek")
     private seek(time: number) {
-        this.startPoint = {
-            pts: this.getPtsByTime(time),
-            timestamp: +new Date()
-        }
+        this.lastPts = this.getPtsByTime(time);
+        this.startTimestamp = +new Date();
     }
 
-    private getCurrentVideoFrame(): VideoFrame {
+    private getCurrentVideoFrame() {
+        return this.getCurrentFrame(this.videoFrameStore);
+    }
+
+    private getCurrentAudioFrame() {
+        return this.getCurrentFrame(this.audioFrameStore);
+    }
+
+    private getCurrentFrame<T extends Frame>(frameStore: T[]) {
         let now = +new Date();
-        throw new Error();
-    }
+        let start = this.startTimestamp;
+        let sec = (now - start) / 1000;
+        let newPts = this.lastPts + sec;
+        let frame = frameStore.find(frame => frame.pts >= newPts);
 
-    private getCurrentAudioFrame(): AudioFrame {
-        //todo
-        throw new Error();
+        //todo, 如果frame还没有加载
+        this.lastPts = frame!.pts;
+        return frame!;
     }
 
     private getPtsByTime(time: number): number {
@@ -49,10 +52,7 @@ export class NormalStore extends PlayerParts {
     @listen("play")
     private startPlayLoop() {
         if (this.isPlaying) return;
-        this.startPoint = {
-            pts: this.lastPts,
-            timestamp: +new Date()
-        }
+        this.startTimestamp = +new Date();
         this.isPlaying = true;
         this.startVideoPlayLoop();
         this.startAudioPlayLoop();
