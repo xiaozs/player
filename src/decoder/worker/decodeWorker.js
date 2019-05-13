@@ -41,7 +41,7 @@ Decoder.prototype.closeDecoder = function (decoderId) {
 
 Decoder.prototype.inputData = function (decoderId, data) {
     var bufferData = this.cacheBuffer.get(data);
-    this.startDecodeLoop();
+    this.startDecodeLoop(decoderId);
 
     var res = Module._inputData(decoderId, bufferData.buffer, bufferData.size);
 
@@ -51,16 +51,15 @@ Decoder.prototype.inputData = function (decoderId, data) {
 }
 
 Decoder.prototype.decodePacket = function (decoderId) {
-    console.log("decodePacket");
     var res = Module._decodePacket(decoderId);
     if (res !== 0) {
-        this.stopDecodeLoop();
+        this.stopDecodeLoop(decoderId);
         throw new Error("decodePacket 失败");
     }
 }
 
 Decoder.prototype.startDecodeLoop = function (decoderId) {
-    this.stopDecodeLoop();
+    this.stopDecodeLoop(decoderId);
     var that = this;
     var timerId = setInterval(function () {
         that.decodePacket(decoderId);
