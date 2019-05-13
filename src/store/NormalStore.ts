@@ -20,14 +20,19 @@ export class NormalStore extends PlayerParts {
     private vTimer?: number;
     private aTimer?: number;
     private startPoint?: TimePoint;
+    private isPlaying = false;
+    private lastPts = 0;
 
     @listen("seek")
     private seek(time: number) {
-
+        this.startPoint = {
+            pts: this.getPtsByTime(time),
+            timestamp: +new Date()
+        }
     }
 
     private getCurrentVideoFrame(): VideoFrame {
-        //todo
+        let now = +new Date();
         throw new Error();
     }
 
@@ -36,8 +41,19 @@ export class NormalStore extends PlayerParts {
         throw new Error();
     }
 
+    private getPtsByTime(time: number): number {
+        //todo
+        throw new Error();
+    }
+
     @listen("play")
     private startPlayLoop() {
+        if (this.isPlaying) return;
+        this.startPoint = {
+            pts: this.lastPts,
+            timestamp: +new Date()
+        }
+        this.isPlaying = true;
         this.startVideoPlayLoop();
         this.startAudioPlayLoop();
     }
@@ -70,6 +86,7 @@ export class NormalStore extends PlayerParts {
     private stopPlayLoop() {
         this.stopVideoPlayLoop();
         this.stopAudioPlayLoop();
+        this.isPlaying = false;
     }
 
     @listen("destory")
@@ -80,11 +97,13 @@ export class NormalStore extends PlayerParts {
 
     @listen("decoder-videoFrame")
     private onVideoFrame(frame: VideoFrame) {
+        //todo,要排序插入
         this.videoFrameStore.push(frame);
     }
 
     @listen("decoder-audioFrame")
     private onAudioFrame(frame: AudioFrame) {
+        //todo,要排序插入
         this.audioFrameStore.push(frame);
     }
 }

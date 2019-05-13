@@ -1,6 +1,8 @@
+var timerMap = {};
+
 function Decoder() {
     this.cacheBuffer = new CacheBuffer(65536);
-    this.logLevel = 0;
+    this.logLevel = 2;
 }
 
 Decoder.prototype.initDecoder = function (videoCallback, audioCallback) {
@@ -31,6 +33,7 @@ Decoder.prototype.openDecoder = function (decoderId, fileName) {
 
 Decoder.prototype.closeDecoder = function (decoderId) {
     var res = Module._closeDecoder(decoderId);
+    this.stopDecodeLoop(decoderId);
     if (res !== 0) {
         throw new Error("closeDecoder 失败");
     }
@@ -38,12 +41,37 @@ Decoder.prototype.closeDecoder = function (decoderId) {
 
 Decoder.prototype.inputData = function (decoderId, data) {
     var bufferData = this.cacheBuffer.get(data);
+    this.startDecodeLoop();
 
     var res = Module._inputData(decoderId, bufferData.buffer, bufferData.size);
 
     if (res !== 0) {
         throw new Error("inputData 失败");
     }
+}
+
+Decoder.prototype.decodePacket = function (decoderId) {
+    console.log("decodePacket");
+    var res = Module._decodePacket(decoderId);
+    if (res !== 0) {
+        this.stopDecodeLoop();
+        throw new Error("decodePacket 失败");
+    }
+}
+
+Decoder.prototype.startDecodeLoop = function (decoderId) {
+    this.stopDecodeLoop();
+    var that = this;
+    var timerId = setInterval(function () {
+        that.decodePacket(decoderId);
+    });
+    timerMap[decoderId] = timerId;
+}
+
+Decoder.prototype.stopDecodeLoop = function (decoderId) {
+    var timerId = timerMap[decoderId];
+    clearInterval(timerId);
+    delete timerMap[decoderId];
 }
 
 function CacheBuffer(initSize) {

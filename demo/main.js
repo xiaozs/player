@@ -5,7 +5,7 @@ require(["../dist/index"], function (myPlayer) {
 
         player = new myPlayer.Player({
             url: url,
-            fileName: url.replace(/\.(.*)$/, "$1"),
+            fileName: url.replace(/.*\.(.*)$/, "$1"),
             loaderType: "live",
             canvas: document.getElementById("canvas"),
             workerUrl: "./dist/decodeWorker.js"

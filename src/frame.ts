@@ -4,7 +4,7 @@ export interface VideoMeta {
     //宽
     width: number;
     //高
-    heigh: number;
+    height: number;
     //帧率
     fps: number;
     //颜色空间类型
