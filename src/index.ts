@@ -27,6 +27,17 @@ let defaultOptions = {
 export class Player extends EventEmitter {
     private eventBus = new EventEmitter();
     private option: Required<PlayerOptions>;
+    private rate_: number = 1;
+
+    get rate() {
+        return this.rate_;
+    }
+
+    set rate(val: number) {
+        this.rate_ = val;
+        this.eventBus.trigger("rateChange", val);
+    }
+
     constructor(option: PlayerOptions) {
         super();
         this.option = Object.assign({}, defaultOptions, option);

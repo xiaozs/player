@@ -7,6 +7,7 @@ export class NormalStore extends PlayerParts {
     constructor(eventBus: EventEmitter) {
         super(eventBus);
     }
+    private rate: number = 1;
 
     private videoFrameStore: VideoFrame[] = [];
     private audioFrameStore: AudioFrame[] = [];
@@ -35,7 +36,7 @@ export class NormalStore extends PlayerParts {
     private getCurrentFrame<T extends Frame>(frameStore: T[]) {
         let now = +new Date();
         let start = this.startTimestamp;
-        let sec = (now - start) / 1000;
+        let sec = (now - start) / 1000 * this.rate;
         let newPts = this.lastPts + sec;
         let frame = frameStore.find(frame => frame.pts >= newPts);
 
@@ -61,7 +62,7 @@ export class NormalStore extends PlayerParts {
     private startVideoPlayLoop() {
         let vFrame = this.getCurrentVideoFrame();
         this.trigger("store-videoFrame", vFrame);
-        this.vTimer = window.setTimeout(this.startVideoPlayLoop, 1000 / vFrame.meta.fps);
+        this.vTimer = window.setTimeout(this.startVideoPlayLoop, 1000 / vFrame.meta.fps / this.rate);
     }
 
     private startAudioPlayLoop() {
@@ -69,7 +70,7 @@ export class NormalStore extends PlayerParts {
         this.trigger("store-audioFrame", aFrame);
         let { sample_rate } = aFrame.meta;
         let fps = sample_rate / 1152 / 1000;
-        this.aTimer = window.setTimeout(this.startAudioPlayLoop, 1000 / fps);
+        this.aTimer = window.setTimeout(this.startAudioPlayLoop, 1000 / fps / this.rate);
     }
 
     @listen("pause")
@@ -105,5 +106,11 @@ export class NormalStore extends PlayerParts {
     private onAudioFrame(frame: AudioFrame) {
         //todo,要排序插入
         this.audioFrameStore.push(frame);
+    }
+
+    @listen("rateChange")
+    private onRateChange(rate: number) {
+        this.rate = rate;
+        this.startTimestamp = +new Date();
     }
 }
