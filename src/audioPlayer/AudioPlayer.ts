@@ -80,4 +80,9 @@ export class AudioPlayer extends PlayerParts {
     private onDestroy() {
 
     }
+
+    @listen("volumeChange")
+    private onVolumeChange(val: number) {
+        this.gainNode.gain.value = val;
+    }
 }

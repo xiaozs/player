@@ -28,6 +28,25 @@ export class Player extends EventEmitter {
     private eventBus = new EventEmitter();
     private option: Required<PlayerOptions>;
     private rate_: number = 1;
+    private volume_: number = 1;
+    private isPlaying_ = false;
+
+    get isPlaying() {
+        return this.isPlaying_;
+    }
+
+    get volume() {
+        return this.volume_;
+    }
+
+    set volume(val: number) {
+        if (val < 0) {
+            throw new Error();
+        } else {
+            this.volume_ = val;
+            this.trigger("volumeChange", val);
+        }
+    }
 
     get rate() {
         return this.rate_;
@@ -42,51 +61,34 @@ export class Player extends EventEmitter {
         super();
         this.option = Object.assign({}, defaultOptions, option);
 
-        this.generateLoader();
-        this.generateVideoPlayer();
-        this.generateAudioPlayer();
-        this.generateDecoder();
-        this.generateStore();
+        this.getParts();
     }
+
     play() {
+        this.isPlaying_ = true;
         this.eventBus.trigger("play");
     }
     pause() {
+        this.isPlaying_ = false;
         this.eventBus.trigger("pause");
     }
     destory() {
         this.eventBus.trigger("destroy");
     }
 
-    private generateLoader() {
-        let { loaderType, retryTimes, retryDelay, url } = this.option;
-
+    private getParts() {
+        let { loaderType, retryTimes, retryDelay, url, canvas } = this.option;
         if (loaderType === "live") {
             new LiveLoader({ url, retryTimes, retryDelay }, this.eventBus);
-        } else {
-            new HttpChunkLoader({ url, retryTimes, retryDelay }, this.eventBus);
-        }
-    }
-
-    private generateAudioPlayer() {
-        new AudioPlayer(this.eventBus);
-    }
-
-    private generateVideoPlayer() {
-        let canvas = this.option.canvas;
-        new WebGLPlayer(canvas, this.eventBus);
-    }
-
-    private generateDecoder() {
-        new Decoder(this.option, this.eventBus);
-    }
-
-    private generateStore() {
-        let { loaderType } = this.option;
-        if (loaderType === "live") {
             new LiveStore(this.eventBus);
         } else {
+            new HttpChunkLoader({ url, retryTimes, retryDelay }, this.eventBus);
             new NormalStore(this.eventBus);
         }
+
+        //公共部分
+        new AudioPlayer(this.eventBus);
+        new WebGLPlayer(canvas, this.eventBus);
+        new Decoder(this.option, this.eventBus);
     }
 }
