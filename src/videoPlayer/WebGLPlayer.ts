@@ -98,7 +98,6 @@ export class WebGLPlayer extends PlayerParts {
 
     @listen("store-videoFrame")
     private onFrame(frame: VideoFrame) {
-        console.log(frame.meta);
         let { data, meta: { width, height } } = frame;
         this.renderFrame(data, width, height);
     }

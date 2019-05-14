@@ -2,7 +2,7 @@ var timerMap = {};
 
 function Decoder() {
     this.cacheBuffer = new CacheBuffer(65536);
-    this.logLevel = 2;
+    this.logLevel = 0;
 }
 
 Decoder.prototype.initDecoder = function (videoCallback, audioCallback) {
