@@ -1,3 +1,52 @@
+function MailBox(handler) {
+    this.cmdArr = [];
+    this.handler = handler;
+    this.timer = null;
+    this.isRuning = false;
+}
+
+MailBox.prototype.start = function () {
+    this.isRuning = true;
+    this.startLoop();
+}
+
+MailBox.prototype.stop = function () {
+    this.isRuning = false;
+}
+
+MailBox.prototype.startLoop = function () {
+    this.timer = null;
+    while (true) {
+        var cmd = this.shift();
+        if (!cmd) return;
+
+        try {
+            this.handler(cmd);
+        } catch (e) {
+            console.error(e);
+            self.postMessage({
+                type: "error",
+                data: JSON.stringify(e)
+            });
+        }
+    }
+}
+
+MailBox.prototype.stop = function () {
+    this.isRuning = false;
+}
+
+MailBox.prototype.push = function (cmd) {
+    this.cmdArr.push(cmd);
+    if (this.isRuning) {
+        this.startLoop();
+    }
+}
+
+MailBox.prototype.shift = function () {
+    return this.cmdArr.shift();
+}
+
 var timerMap = {};
 
 function Decoder() {
@@ -33,7 +82,6 @@ Decoder.prototype.openDecoder = function (decoderId, fileName) {
 
 Decoder.prototype.closeDecoder = function (decoderId) {
     var res = Module._closeDecoder(decoderId);
-    this.stopDecodeLoop(decoderId);
     if (res !== 0) {
         throw new Error("closeDecoder 失败");
     }
@@ -41,10 +89,7 @@ Decoder.prototype.closeDecoder = function (decoderId) {
 
 Decoder.prototype.inputData = function (decoderId, data) {
     var bufferData = this.cacheBuffer.get(data);
-    this.startDecodeLoop(decoderId);
-
     var res = Module._inputData(decoderId, bufferData.buffer, bufferData.size);
-
     if (res !== 0) {
         throw new Error("inputData 失败");
     }
@@ -53,25 +98,10 @@ Decoder.prototype.inputData = function (decoderId, data) {
 Decoder.prototype.decodePacket = function (decoderId) {
     var res = Module._decodePacket(decoderId);
     if (res !== 0) {
-        this.stopDecodeLoop(decoderId);
         throw new Error("decodePacket 失败");
     }
 }
 
-Decoder.prototype.startDecodeLoop = function (decoderId) {
-    this.stopDecodeLoop(decoderId);
-    var that = this;
-    var timerId = setInterval(function () {
-        that.decodePacket(decoderId);
-    });
-    timerMap[decoderId] = timerId;
-}
-
-Decoder.prototype.stopDecodeLoop = function (decoderId) {
-    var timerId = timerMap[decoderId];
-    clearInterval(timerId);
-    delete timerMap[decoderId];
-}
 
 function CacheBuffer(initSize) {
     this.size = initSize;
@@ -118,24 +148,22 @@ function getJSON(strPointer) {
  */
 var decoder = null;
 
-var isInited = false;
 var isFailed = false;
-var mailBox = [];
+var mailBox = new MailBox(messageHandler);
 
 function main() {
     try {
         decoder = new Decoder();
         decoder.initDecoder(videoCallback, audioCallback);
-        clearMailBox();
-        isInited = true;
     } catch (e) {
-        console.error(e);
+        this.isFailed = true;
         self.postMessage({
             type: "error",
             data: JSON.stringify(e)
         })
-        this.isFailed = true;
     }
+
+    mailBox.start();
 }
 
 function videoCallback(decoderId, buff, size, pts, paramJsonStr) {
@@ -168,11 +196,6 @@ function audioCallback(decoderId, buff, size, pts, paramJsonStr) {
     }, [data.buffer])
 }
 
-function clearMailBox() {
-    mailBox.forEach(it => messageHandler(it));
-    mailbox = [];
-}
-
 function messageHandler(e) {
     var type = e.data.type;
     var data = e.data.data;
@@ -193,9 +216,7 @@ function messageHandler(e) {
 }
 
 self.addEventListener("message", function (e) {
-    if (isInited) {
-        messageHandler(e);
-    } else if (!isFailed) {
+    if (!isFailed) {
         mailBox.push(e);
     }
 })
