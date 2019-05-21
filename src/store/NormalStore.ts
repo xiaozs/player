@@ -90,8 +90,8 @@ export class NormalStore extends PlayerParts {
         this.isPlaying = false;
     }
 
-    @listen("destory")
-    private onDestory() {
+    @listen("destroy")
+    private onDestroy() {
         this.stopPlayLoop();
         this.off();
     }

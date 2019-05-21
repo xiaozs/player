@@ -8,13 +8,12 @@ import { LiveStore } from "./store/LiveStore";
 import { NormalStore } from "./store/NormalStore";
 import "reflect-metadata";
 
-export interface PlayerOptions {
+export interface ScreenOptions {
     readonly fileName: string;
     readonly url: string;
     readonly retryTimes?: number;
     readonly retryDelay?: number;
 
-    readonly canvas: HTMLCanvasElement;
     readonly loaderType: string;
     readonly workerUrl: string;
 }
@@ -24,12 +23,32 @@ let defaultOptions = {
     retryDelay: 500
 }
 
-export class Player extends EventEmitter {
+interface ScreenOptionsWithCanvas extends ScreenOptions {
+    readonly gl: WebGLRenderingContext;
+}
+
+export class Player {
+    private gl: WebGLRenderingContext;
+    constructor(private canvas: HTMLCanvasElement) {
+        this.gl = this.canvas.getContext("webgl")! || this.canvas.getContext("experimental-webgl")!;
+    }
+
+    createScreen(options: ScreenOptions) {
+        let opts = Object.assign({}, options, { gl: this.gl });
+        return new Screen(opts);
+    }
+}
+
+export class Screen extends EventEmitter {
     private eventBus = new EventEmitter();
-    private option: Required<PlayerOptions>;
+    private option: Required<ScreenOptionsWithCanvas>;
     private rate_: number = 1;
     private volume_: number = 1;
     private isPlaying_ = false;
+
+    get url() {
+        return this.option.url;
+    }
 
     get isPlaying() {
         return this.isPlaying_;
@@ -57,7 +76,7 @@ export class Player extends EventEmitter {
         this.eventBus.trigger("rateChange", val);
     }
 
-    constructor(option: PlayerOptions) {
+    constructor(option: ScreenOptionsWithCanvas) {
         super();
         this.option = Object.assign({}, defaultOptions, option);
 
@@ -72,12 +91,12 @@ export class Player extends EventEmitter {
         this.isPlaying_ = false;
         this.eventBus.trigger("pause");
     }
-    destory() {
+    destroy() {
         this.eventBus.trigger("destroy");
     }
 
     private getParts() {
-        let { loaderType, retryTimes, retryDelay, url, canvas } = this.option;
+        let { loaderType, retryTimes, retryDelay, url, gl } = this.option;
         if (loaderType === "live") {
             new LiveLoader({ url, retryTimes, retryDelay }, this.eventBus);
             new LiveStore(this.eventBus);
@@ -88,7 +107,7 @@ export class Player extends EventEmitter {
 
         //公共部分
         new AudioPlayer(this.eventBus);
-        new WebGLPlayer(canvas, this.eventBus);
+        new WebGLPlayer(gl, this.eventBus);
         new Decoder(this.option, this.eventBus);
     }
 }

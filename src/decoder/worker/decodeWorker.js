@@ -73,30 +73,30 @@ Decoder.prototype.uninitDecoder = function () {
     }
 }
 
-Decoder.prototype.openDecoder = function (decoderId, fileName) {
-    var res = Module._openDecoder(decoderId, fileName);
+Decoder.prototype.openDecoder = function (fileName) {
+    var res = Module._openDecoder(1, fileName);
     if (res !== 0) {
         throw new Error("openDecoder 失败");
     }
 }
 
-Decoder.prototype.closeDecoder = function (decoderId) {
-    var res = Module._closeDecoder(decoderId);
+Decoder.prototype.closeDecoder = function () {
+    var res = Module._closeDecoder(1);
     if (res !== 0) {
         throw new Error("closeDecoder 失败");
     }
 }
 
-Decoder.prototype.inputData = function (decoderId, data) {
+Decoder.prototype.inputData = function (data) {
     var bufferData = this.cacheBuffer.get(data);
-    var res = Module._inputData(decoderId, bufferData.buffer, bufferData.size);
+    var res = Module._inputData(1, bufferData.buffer, bufferData.size);
     if (res !== 0) {
         throw new Error("inputData 失败");
     }
 }
 
-Decoder.prototype.decodePacket = function (decoderId) {
-    var res = Module._decodePacket(decoderId);
+Decoder.prototype.decodePacket = function () {
+    var res = Module._decodePacket(1);
     if (res !== 0) {
         throw new Error("decodePacket 失败");
     }
@@ -173,7 +173,6 @@ function videoCallback(decoderId, buff, size, pts, paramJsonStr) {
     self.postMessage({
         type: "decoder-videoFrame",
         data: {
-            decoderId: decoderId,
             data: data,
             meta: meta,
             pts: pts
@@ -188,7 +187,6 @@ function audioCallback(decoderId, buff, size, pts, paramJsonStr) {
     self.postMessage({
         type: "decoder-audioFrame",
         data: {
-            decoderId: decoderId,
             data: data,
             meta: meta,
             pts: pts
@@ -199,18 +197,19 @@ function audioCallback(decoderId, buff, size, pts, paramJsonStr) {
 function messageHandler(e) {
     var type = e.data.type;
     var data = e.data.data;
+    console.log(type)
     switch (type) {
         case "uninitDecoder":
             decoder.uninitDecoder();
             break;
         case "openDecoder":
-            decoder.openDecoder(data.decoderId, data.fileName);
+            decoder.openDecoder(data.fileName);
             break;
         case "closeDecoder":
-            decoder.closeDecoder(data.decoderId);
+            decoder.closeDecoder();
             break;
         case "inputData":
-            decoder.inputData(data.decoderId, data.data);
+            decoder.inputData(data.data);
             break;
     }
 }

@@ -26,8 +26,8 @@ export class LiveLoader extends PlayerParts {
         this.stopRetry();
     }
 
-    @listen("destory")
-    private onDestory() {
+    @listen("destroy")
+    private onDestroy() {
         this.isPlaying = false;
         this.stopRetry();
         this.off();

@@ -1,22 +1,32 @@
 require(["../dist/index"], function (myPlayer) {
     var canvas = document.getElementById("canvas");
-    var player;
+    var player = new myPlayer.Player(canvas);
+    var screen = createScreen();
+
     document.getElementById("play").addEventListener("click", function () {
         var url = document.getElementById("input").value;
-
-        player = new myPlayer.Player({
-            url: url,
-            fileName: url.replace(/.*\.(.*)$/, "$1"),
-            loaderType: "live",
-            canvas: canvas,
-            workerUrl: "./dist/decodeWorker.js"
-        });
-        player.play();
+        if (!screen.isPlaying && screen.url === url) {
+            screen.play();
+        } else {
+            screen.destroy();
+            screen = createScreen();
+            screen.play();
+        }
     })
     document.getElementById("pause").addEventListener("click", function () {
-        player.pause();
+        screen.pause();
     })
     document.getElementById("fullscreen").addEventListener("click", function () {
         canvas.requestFullscreen();
     })
+
+    function createScreen() {
+        var url = document.getElementById("input").value;
+        return player.createScreen({
+            url: url,
+            fileName: url.replace(/.*\.(.*)$/, "$1"),
+            loaderType: "live",
+            workerUrl: "./dist/decodeWorker.js"
+        });
+    }
 })

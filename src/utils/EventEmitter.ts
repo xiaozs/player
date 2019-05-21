@@ -53,7 +53,8 @@ export class EventEmitter {
     trigger(eventName: string, ...args: any[]) {
         let arr = this.getMetaArr(eventName!);
         for (let it of arr) {
-            setTimeout(() => it.fn(...args));
+            it.fn(...args);
+            // setTimeout(() => it.fn(...args));
         }
         let newArr = arr.filter(it => !it.isOnce);
         this.eventMap.set(eventName, newArr);
