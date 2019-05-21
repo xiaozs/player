@@ -23,7 +23,6 @@ MailBox.prototype.startLoop = function () {
         try {
             this.handler(cmd);
         } catch (e) {
-            console.error(e);
             self.postMessage({
                 type: "error",
                 data: JSON.stringify(e)
@@ -197,7 +196,6 @@ function audioCallback(decoderId, buff, size, pts, paramJsonStr) {
 function messageHandler(e) {
     var type = e.data.type;
     var data = e.data.data;
-    console.log(type)
     switch (type) {
         case "uninitDecoder":
             decoder.uninitDecoder();
