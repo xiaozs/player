@@ -15,7 +15,7 @@ MailBox.prototype.stop = function () {
 }
 
 MailBox.prototype.startLoop = function () {
-    this.timer = null;
+    this.clear();
     while (true) {
         var cmd = this.shift();
         if (!cmd) return;
@@ -38,12 +38,25 @@ MailBox.prototype.stop = function () {
 MailBox.prototype.push = function (cmd) {
     this.cmdArr.push(cmd);
     if (this.isRuning) {
-        this.startLoop();
+        clearTimeout(this.timer);
+        var that = this;
+        this.timer = setTimeout(function () {
+            that.startLoop();
+        });
     }
 }
 
 MailBox.prototype.shift = function () {
     return this.cmdArr.shift();
+}
+
+MailBox.prototype.clear = function () {
+    if (this.cmdArr.length > 500) {
+        console.log(this.cmdArr.length);
+        this.cmdArr = this.cmdArr.filter(function (it, index) {
+            return it.data.type !== "inputData" || index > 150;
+        })
+    }
 }
 
 var timerMap = {};

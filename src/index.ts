@@ -8,7 +8,9 @@ import { LiveStore } from "./store/LiveStore";
 import { NormalStore } from "./store/NormalStore";
 import "reflect-metadata";
 
-export interface ScreenOptions {
+export interface PlayerOptions {
+    readonly canvas: HTMLCanvasElement;
+
     readonly fileName: string;
     readonly url: string;
     readonly retryTimes?: number;
@@ -23,25 +25,9 @@ let defaultOptions = {
     retryDelay: 500
 }
 
-interface ScreenOptionsWithCanvas extends ScreenOptions {
-    readonly gl: WebGLRenderingContext;
-}
-
-export class Player {
-    private gl: WebGLRenderingContext;
-    constructor(private canvas: HTMLCanvasElement) {
-        this.gl = this.canvas.getContext("webgl")! || this.canvas.getContext("experimental-webgl")!;
-    }
-
-    createScreen(options: ScreenOptions) {
-        let opts = Object.assign({}, options, { gl: this.gl });
-        return new Screen(opts);
-    }
-}
-
-export class Screen extends EventEmitter {
+export class Player extends EventEmitter {
     private eventBus = new EventEmitter();
-    private option: Required<ScreenOptionsWithCanvas>;
+    private option: Required<PlayerOptions>;
     private rate_: number = 1;
     private volume_: number = 1;
     private isPlaying_ = false;
@@ -76,7 +62,7 @@ export class Screen extends EventEmitter {
         this.eventBus.trigger("rateChange", val);
     }
 
-    constructor(option: ScreenOptionsWithCanvas) {
+    constructor(option: PlayerOptions) {
         super();
         this.option = Object.assign({}, defaultOptions, option);
 
@@ -96,7 +82,7 @@ export class Screen extends EventEmitter {
     }
 
     private getParts() {
-        let { loaderType, retryTimes, retryDelay, url, gl } = this.option;
+        let { loaderType, retryTimes, retryDelay, url, canvas } = this.option;
         if (loaderType === "live") {
             new LiveLoader({ url, retryTimes, retryDelay }, this.eventBus);
             new LiveStore(this.eventBus);
@@ -107,7 +93,7 @@ export class Screen extends EventEmitter {
 
         //公共部分
         new AudioPlayer(this.eventBus);
-        new WebGLPlayer(gl, this.eventBus);
+        new WebGLPlayer(canvas, this.eventBus);
         new Decoder(this.option, this.eventBus);
     }
 }

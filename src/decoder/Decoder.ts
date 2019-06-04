@@ -1,12 +1,12 @@
 import { EventEmitter } from "../utils/EventEmitter";
 import { PlayerParts } from "../utils/PlayerParts";
 import { listen } from "../utils/listen";
-import { ScreenOptions } from '../index';
+import { PlayerOptions } from '../index';
 
 export class Decoder extends PlayerParts {
     private worker!: Worker;
 
-    constructor(options: ScreenOptions, eventBus: EventEmitter) {
+    constructor(options: PlayerOptions, eventBus: EventEmitter) {
         super(eventBus);
 
         this.worker = new Worker(options.workerUrl);

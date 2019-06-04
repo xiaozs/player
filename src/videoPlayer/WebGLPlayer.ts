@@ -4,11 +4,12 @@ import { listen } from "../utils/listen";
 import { VideoFrame } from "../frame";
 
 export class WebGLPlayer extends PlayerParts {
+    private gl: WebGLRenderingContext = this.canvas.getContext("webgl")! || this.canvas.getContext("experimental-webgl")!;
     private y!: Texture;
     private u!: Texture;
     private v!: Texture;
 
-    constructor(private gl: WebGLRenderingContext, eventBus: EventEmitter) {
+    constructor(private canvas: HTMLCanvasElement, eventBus: EventEmitter) {
         super(eventBus);
         this.initGL();
     }

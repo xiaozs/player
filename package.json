@@ -21,6 +21,7 @@
     "express": "^4.16.4",
     "gulp": "^3.9.1",
     "gulp-typescript": "^5.0.1",
+    "jquery": "^3.4.1",
     "portscanner": "^2.2.0",
     "requirejs": "^2.3.6",
     "tsify": "^4.0.1",
