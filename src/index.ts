@@ -13,16 +13,13 @@ export interface PlayerOptions {
 
     readonly fileName: string;
     readonly url: string;
-    readonly retryTimes?: number;
-    readonly retryDelay?: number;
 
     readonly loaderType: string;
     readonly workerUrl: string;
 }
 
 let defaultOptions = {
-    retryTimes: 5,
-    retryDelay: 500
+
 }
 
 export class Player extends EventEmitter {
@@ -82,12 +79,12 @@ export class Player extends EventEmitter {
     }
 
     private getParts() {
-        let { loaderType, retryTimes, retryDelay, url, canvas } = this.option;
+        let { loaderType, url, canvas } = this.option;
         if (loaderType === "live") {
-            new LiveLoader({ url, retryTimes, retryDelay }, this.eventBus);
+            new LiveLoader({ url }, this.eventBus);
             new LiveStore(this.eventBus);
         } else {
-            new HttpChunkLoader({ url, retryTimes, retryDelay }, this.eventBus);
+            new HttpChunkLoader({ url }, this.eventBus);
             new NormalStore(this.eventBus);
         }
 

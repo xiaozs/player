@@ -5,8 +5,6 @@ import { ReaderWrapper } from '../utils/ReaderWrapper';
 
 export interface LiveLoaderOptions {
     url: string;
-    retryTimes: number;
-    retryDelay: number;
 }
 
 export class LiveLoader extends PlayerParts {
@@ -23,23 +21,15 @@ export class LiveLoader extends PlayerParts {
     @listen("pause")
     private onPause() {
         this.isPlaying = false;
-        this.stopRetry();
     }
 
     @listen("destroy")
     private onDestroy() {
         this.isPlaying = false;
-        this.stopRetry();
         this.off();
     }
 
     private isPlaying = false;
-    private hasRetryTimes = 0;
-    private retryTimer?: number;
-
-    private stopRetry() {
-        window.clearTimeout(this.retryTimer);
-    }
 
     private async fetch() {
         try {
@@ -47,7 +37,6 @@ export class LiveLoader extends PlayerParts {
             let res = await fetch(this.options.url, { mode: "cors" });
             let body = res.body!;
             let reader = body.getReader();
-            this.hasRetryTimes = 0;
             for await (let chunk of new ReaderWrapper(reader)) {
                 if (!this.isPlaying) {
                     reader.cancel();
@@ -57,12 +46,7 @@ export class LiveLoader extends PlayerParts {
             }
             this.isPlaying = false;
         } catch (e) {
-            if (this.hasRetryTimes++ < this.options.retryTimes) {
-                this.retryTimer = window.setTimeout(() => this.fetch(), this.options.retryDelay);
-            } else {
-                this.trigger("error", e);
-                throw e;
-            }
+            this.trigger("error", e);
         }
     }
 }

@@ -5,8 +5,6 @@ import { VideoFrame } from '../frame';
 
 export interface LiveLoaderOptions {
     url: string;
-    retryTimes: number;
-    retryDelay: number;
 }
 
 class Segment {
@@ -101,8 +99,10 @@ export class HttpChunkLoader extends PlayerParts {
     private async onSeek(time: number) {
         await this.getIndexData();
         let seg = this.getSegment(time);
-        seg && this.trigger("loader-chunked", await seg.data);
-        this.indexData!.forEach(it => it.hasSended = false);
+        if (seg) {
+            this.trigger("loader-chunked", await seg.data);
+            this.indexData!.forEach(it => it.hasSended = false);
+        }
     }
 
     @listen("store-videoFrame")
