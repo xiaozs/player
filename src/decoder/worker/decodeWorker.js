@@ -232,6 +232,7 @@ self.addEventListener("message", function (e) {
 })
 
 self.Module = {
+    mainScriptUrlOrBlob: "./libffmpeg.js",
     onRuntimeInitialized: function () {
         main();
     }
