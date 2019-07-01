@@ -1,9 +1,7 @@
 var portscanner = require("portscanner");
 var express = require("express");
 var path = require("path");
-var chunksStream = require("chunks-stream");
-var fs = require("fs");
-var Transform = require("stream").Transform;
+var proxy = require("http-proxy-middleware");
 
 async function main() {
     var port = await portscanner.findAPortNotInUse(3000, 4000);
@@ -15,22 +13,22 @@ async function main() {
     var distPath = path.resolve(staticPath, "./dist");
     var nodeModulesPath = path.resolve(staticPath, "./node_modules");
 
-    // app.use("*.mp4", function (req, res) {
-    //     var filePath = path.resolve(demoPath, "." + req.originalUrl);
-    //     res.setHeader("Transfer-Encoding", "chunked");
-    //     fs.createReadStream(filePath)
-    //         .pipe(new chunksStream(1024 * 100))
-    //         .pipe(new Transform({
-    //             transform(chunk, _, callback) {
-    //                 setTimeout(() => {
-    //                     callback(null, chunk);
-    //                 }, 100)
-    //             }
-    //         }))
-    //         .pipe(res);
-    // })
-
     app.use(express.static(demoPath));
+    app.use("/GoVideo", proxy({
+        target: 'http://127.0.0.1:8004',
+        changeOrigin: true
+    }));
+
+    app.use(function (req, res, next) {
+        if (!req.url.startsWith("/playback_m")) return next();
+        console.log("test")
+        proxy({
+            target: 'http://127.0.0.1:8005',
+            changeOrigin: true
+        })(req, res, next);
+    });
+
+
     app.use("/dist", express.static(distPath, {
         setHeaders(res, path) {
             if (/\.wasm$/.test(path)) {

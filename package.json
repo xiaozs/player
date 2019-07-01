@@ -28,6 +28,7 @@
     "typescript": "^3.4.5"
   },
   "dependencies": {
+    "http-proxy-middleware": "^0.19.1",
     "reflect-metadata": "^0.1.13",
     "tslib": "^1.9.3"
   }
