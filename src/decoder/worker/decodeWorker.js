@@ -71,6 +71,7 @@ Decoder.prototype.initDecoder = function (videoCallback, audioCallback) {
     audioCallback = Module.addFunction(audioCallback);
 
     var res = Module._initDecoder(this.logLevel, videoCallback, audioCallback);
+    console.log("initDecoder");
     if (res !== 0) {
         throw new Error("initDecoder 失败");
     }
@@ -78,6 +79,7 @@ Decoder.prototype.initDecoder = function (videoCallback, audioCallback) {
 
 Decoder.prototype.uninitDecoder = function () {
     var res = Module._uninitDecoder();
+    console.log("uninitDecoder");
     if (res === 0) {
         this.cacheBuffer.free();
     } else {
@@ -85,8 +87,9 @@ Decoder.prototype.uninitDecoder = function () {
     }
 }
 
-Decoder.prototype.openDecoder = function (fileName) {
-    var res = Module._openDecoder(1, fileName);
+Decoder.prototype.openDecoder = function (fileName, isReplay) {
+    var res = Module._openDecoder(1, fileName, isReplay ? 1 : 0);
+    console.log("openDecoder");
     if (res !== 0) {
         throw new Error("openDecoder 失败");
     }
@@ -94,6 +97,7 @@ Decoder.prototype.openDecoder = function (fileName) {
 
 Decoder.prototype.closeDecoder = function () {
     var res = Module._closeDecoder(1);
+    console.log("closeDecoder");
     if (res !== 0) {
         throw new Error("closeDecoder 失败");
     }
@@ -102,6 +106,7 @@ Decoder.prototype.closeDecoder = function () {
 Decoder.prototype.inputData = function (data) {
     var bufferData = this.cacheBuffer.get(data);
     var res = Module._inputData(1, bufferData.buffer, bufferData.size);
+    console.log("inputData");
     if (res !== 0) {
         throw new Error("inputData 失败");
     }
@@ -109,8 +114,17 @@ Decoder.prototype.inputData = function (data) {
 
 Decoder.prototype.decodePacket = function () {
     var res = Module._decodePacket(1);
+    console.log("decodePacket");
     if (res !== 0) {
         throw new Error("decodePacket 失败");
+    }
+}
+
+Decoder.prototype.flushDecoder = function () {
+    var res = Module._flushDecoder(1);
+    console.log("flushDecoder");
+    if (res !== 0) {
+        throw new Error("flushDecoder 失败");
     }
 }
 
@@ -214,7 +228,7 @@ function messageHandler(e) {
             decoder.uninitDecoder();
             break;
         case "openDecoder":
-            decoder.openDecoder(data.fileName);
+            decoder.openDecoder(data.fileName, data.isReplay);
             break;
         case "closeDecoder":
             decoder.closeDecoder();

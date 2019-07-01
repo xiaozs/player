@@ -62,8 +62,8 @@ require(["../dist/index"], function (myPlayer) {
             var player = new myPlayer.Player({
                 canvas: canvas,
                 url: url,
-                fileName: url.replace(/.*\.(.*)$/, "$1"),
-                loaderType: "live",
+                fileName: "ts", // url.replace(/.*\.(.*)$/, "$1"),
+                // loaderType: "live",
                 workerUrl: "./dist/decodeWorker.js"
             });
             $item.data("player", player);

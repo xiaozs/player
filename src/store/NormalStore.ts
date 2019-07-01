@@ -39,10 +39,13 @@ export class NormalStore extends PlayerParts {
         let sec = (now - start) / 1000 * this.rate;
         let newPts = this.lastPts + sec;
         let frame = frameStore.find(frame => frame.pts >= newPts);
-
-        //todo, 如果frame还没有加载
-        this.lastPts = frame!.pts;
-        return frame!;
+        if (frame) {
+            //todo, 如果frame还没有加载
+            this.lastPts = frame!.pts;
+            return frame;
+        } else {
+            return null;
+        }
     }
 
     private getPtsByTime(time: number): number {
@@ -61,12 +64,14 @@ export class NormalStore extends PlayerParts {
 
     private startVideoPlayLoop() {
         let vFrame = this.getCurrentVideoFrame();
+        if (!vFrame) return;
         this.trigger("store-videoFrame", vFrame);
         this.vTimer = window.setTimeout(this.startVideoPlayLoop, 1000 / vFrame.meta.fps / this.rate);
     }
 
     private startAudioPlayLoop() {
         let aFrame = this.getCurrentAudioFrame();
+        if (!aFrame) return;
         this.trigger("store-audioFrame", aFrame);
         let { sample_rate } = aFrame.meta;
         let fps = sample_rate / 1152 / 1000;

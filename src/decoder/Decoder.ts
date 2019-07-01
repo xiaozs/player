@@ -10,7 +10,7 @@ export class Decoder extends PlayerParts {
         super(eventBus);
 
         this.worker = new Worker(options.workerUrl);
-        this.openDecoder(options.fileName)
+        this.openDecoder(options.fileName, options.loaderType !== "live")
         this.worker.addEventListener("message", e => {
             let eData = e.data;
             let type = eData.type;
@@ -19,12 +19,10 @@ export class Decoder extends PlayerParts {
         });
     }
 
-    private openDecoder(fileName: string) {
+    private openDecoder(fileName: string, isReplay: boolean) {
         this.worker.postMessage({
             type: "openDecoder",
-            data: {
-                fileName
-            }
+            data: { fileName, isReplay }
         })
     }
 

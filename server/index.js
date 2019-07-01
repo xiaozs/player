@@ -19,13 +19,13 @@ async function main() {
         changeOrigin: true
     }));
 
+    let proxy8005 = proxy({
+        target: 'http://127.0.0.1:8005',
+        changeOrigin: true
+    });
     app.use(function (req, res, next) {
         if (!req.url.startsWith("/playback_m")) return next();
-        console.log("test")
-        proxy({
-            target: 'http://127.0.0.1:8005',
-            changeOrigin: true
-        })(req, res, next);
+        proxy8005(req, res, next);
     });
 
 
