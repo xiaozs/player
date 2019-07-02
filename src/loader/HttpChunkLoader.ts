@@ -100,15 +100,14 @@ export class HttpChunkLoader extends PlayerParts {
         await this.getIndexData();
         let seg = this.getSegment(time);
         if (seg) {
-            this.trigger("loader-chunked", await seg.data);
+            this.trigger("loader-chunked", await seg.data, seg.start);
             this.indexData!.forEach(it => it.hasSended = false);
         }
     }
 
     @listen("store-videoFrame")
     private async onFrame(frame: VideoFrame) {
-        //todo, frame.decoderId要找办法转换成currentTime
-        this.currentTime = frame.decoderId;
+        this.currentTime = frame.pts / 1000;
         let seg = this.getSegment(this.currentTime)!;
         if (this.currentTime + 5 > seg.end) {
             let nextSeg = this.getSegment(seg.end);

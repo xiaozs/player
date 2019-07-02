@@ -33,7 +33,6 @@ export interface AudioFrame extends Frame {
 }
 
 export interface Frame {
-    decoderId: number;
     data: Uint8Array;
     pts: number;
 }

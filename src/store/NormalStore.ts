@@ -6,6 +6,8 @@ import { VideoFrame, AudioFrame, Frame } from "../frame";
 export class NormalStore extends PlayerParts {
     constructor(eventBus: EventEmitter) {
         super(eventBus);
+        this.startVideoPlayLoop = this.startVideoPlayLoop.bind(this);
+        this.startAudioPlayLoop = this.startAudioPlayLoop.bind(this);
     }
     private rate: number = 1;
 
@@ -15,70 +17,50 @@ export class NormalStore extends PlayerParts {
     private vTimer?: number;
     private aTimer?: number;
     private lastPts = 0;
-    private startTimestamp = +new Date();
 
     private isPlaying = false;
 
-    @listen("seek")
-    private seek(time: number) {
-        this.lastPts = this.getPtsByTime(time);
-        this.startTimestamp = +new Date();
-    }
-
-    private getCurrentVideoFrame() {
-        return this.getCurrentFrame(this.videoFrameStore);
-    }
-
-    private getCurrentAudioFrame() {
-        return this.getCurrentFrame(this.audioFrameStore);
-    }
-
     private getCurrentFrame<T extends Frame>(frameStore: T[]) {
-        let now = +new Date();
-        let start = this.startTimestamp;
-        let sec = (now - start) / 1000 * this.rate;
-        let newPts = this.lastPts + sec;
-        let frame = frameStore.find(frame => frame.pts >= newPts);
+        let frame = frameStore.find(frame => frame.pts > this.lastPts);
         if (frame) {
-            //todo, 如果frame还没有加载
-            this.lastPts = frame!.pts;
-            return frame;
-        } else {
-            return null;
+            this.lastPts = frame.pts;
         }
-    }
-
-    private getPtsByTime(time: number): number {
-        //todo
-        throw new Error();
+        return frame;
     }
 
     @listen("play")
     private startPlayLoop() {
         if (this.isPlaying) return;
-        this.startTimestamp = +new Date();
         this.isPlaying = true;
         this.startVideoPlayLoop();
         this.startAudioPlayLoop();
     }
 
+    @listen("seek")
+    private seek(time: number) {
+        this.lastPts = time * 1000;
+    }
+
     private startVideoPlayLoop() {
-        let vFrame = this.getCurrentVideoFrame();
-        if (!vFrame) return;
-        this.trigger("store-videoFrame", vFrame);
-        this.vTimer = window.setTimeout(this.startVideoPlayLoop, 1000 / vFrame.meta.fps / this.rate);
+        let vFrame = this.getCurrentFrame(this.videoFrameStore);
+        let fps = 60;
+        if (vFrame) {
+            this.trigger("store-videoFrame", vFrame);
+            fps = vFrame.meta.fps;
+        }
+        this.vTimer = window.setTimeout(this.startVideoPlayLoop, 1000 / fps / this.rate);
     }
 
     private startAudioPlayLoop() {
-        let aFrame = this.getCurrentAudioFrame();
-        if (!aFrame) return;
-        this.trigger("store-audioFrame", aFrame);
-        let { sample_rate } = aFrame.meta;
-        let fps = sample_rate / 1152 / 1000;
+        let aFrame = this.getCurrentFrame(this.audioFrameStore);
+        let fps = 60;
+        if (aFrame) {
+            this.trigger("store-audioFrame", aFrame);
+            fps = aFrame.meta.sample_rate / 1152 / 1000;
+        }
         this.aTimer = window.setTimeout(this.startAudioPlayLoop, 1000 / fps / this.rate);
     }
 
-    @listen("pause")
     private stopVideoPlayLoop() {
         clearTimeout(this.vTimer);
         this.vTimer = undefined;
@@ -89,6 +71,7 @@ export class NormalStore extends PlayerParts {
         this.aTimer = undefined;
     }
 
+    @listen("pause")
     private stopPlayLoop() {
         this.stopVideoPlayLoop();
         this.stopAudioPlayLoop();
@@ -103,19 +86,16 @@ export class NormalStore extends PlayerParts {
 
     @listen("decoder-videoFrame")
     private onVideoFrame(frame: VideoFrame) {
-        //todo,要排序插入
         this.videoFrameStore.push(frame);
     }
 
     @listen("decoder-audioFrame")
     private onAudioFrame(frame: AudioFrame) {
-        //todo,要排序插入
         this.audioFrameStore.push(frame);
     }
 
     @listen("rateChange")
     private onRateChange(rate: number) {
         this.rate = rate;
-        this.startTimestamp = +new Date();
     }
 }

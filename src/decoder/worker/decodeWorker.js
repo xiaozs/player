@@ -106,7 +106,6 @@ Decoder.prototype.closeDecoder = function () {
 Decoder.prototype.inputData = function (data) {
     var bufferData = this.cacheBuffer.get(data);
     var res = Module._inputData(1, bufferData.buffer, bufferData.size);
-    console.log("inputData");
     if (res !== 0) {
         throw new Error("inputData 失败");
     }
@@ -235,6 +234,9 @@ function messageHandler(e) {
             break;
         case "inputData":
             decoder.inputData(data.data);
+            break;
+        case "flushDecoder":
+            decoder.flushDecoder();
             break;
     }
 }
