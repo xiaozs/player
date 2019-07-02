@@ -51,7 +51,8 @@ require(["../dist/index"], function (myPlayer) {
         var $new = $(template);
         $new.on("click", ".play", onPlay(url))
             .on("click", ".pause", onPause(url))
-            .on("click", ".fullscreen", onFullscreen);
+            .on("click", ".fullscreen", onFullscreen)
+            .on("change", ".range", onRangeChange)
         $container.append($new);
     }
 
@@ -67,8 +68,29 @@ require(["../dist/index"], function (myPlayer) {
                 workerUrl: "./dist/decodeWorker.js"
             });
             $item.data("player", player);
+            player.on("meta", onMeta($item));
+            player.on("play", onPlaying($item))
         }
         return player;
+    }
+
+    function onMeta($item) {
+        return function (data) {
+            $item.find(".range").attr("max", data.duration);
+        }
+    }
+
+    function onPlaying($item) {
+        return function (data) {
+            $item.find(".range").val(data);
+        }
+    }
+
+    function onRangeChange() {
+        var $this = $(this);
+        var num = $this.val();
+        var player = $this.parent(".item").data("player");
+        player.seek(num);
     }
 
     function onPlay(url) {

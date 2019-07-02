@@ -17,7 +17,7 @@ export class Decoder extends PlayerParts {
             let type = eData.type;
             let data = eData.data;
             if (type === "decoder-videoFrame" || type === "decoder-audioFrame") {
-                this.seekTime = data.pts = this.seekTime + (1000 / data.meta.fps);
+                data.pts += this.seekTime
             }
             this.trigger(type, data);
         });

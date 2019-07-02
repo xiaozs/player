@@ -64,6 +64,17 @@ export class Player extends EventEmitter {
         this.option = Object.assign({}, defaultOptions, option);
 
         this.getParts();
+        this.eventBinding();
+    }
+
+    private eventBinding() {
+        this.eventBusProxy("meta", "play", "error");
+    }
+
+    private eventBusProxy(...eventNameArr: string[]) {
+        for (let eventName of eventNameArr) {
+            this.eventBus.on(eventName, (...args: any[]) => this.trigger(eventName, ...args))
+        }
     }
 
     play() {
@@ -73,6 +84,9 @@ export class Player extends EventEmitter {
     pause() {
         this.isPlaying_ = false;
         this.eventBus.trigger("pause");
+    }
+    seek(time: number) {
+        this.eventBus.trigger("seek", time);
     }
     destroy() {
         this.eventBus.trigger("destroy");

@@ -46,6 +46,7 @@ export class NormalStore extends PlayerParts {
         let fps = 60;
         if (vFrame) {
             this.trigger("store-videoFrame", vFrame);
+            this.trigger("play", vFrame.pts / 1000);
             fps = vFrame.meta.fps;
         }
         this.vTimer = window.setTimeout(this.startVideoPlayLoop, 1000 / fps / this.rate);

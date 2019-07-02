@@ -30,6 +30,10 @@
         .file:hover {
             color: blue;
         }
+
+        .range {
+            width: 100%;
+        }
     </style>
     <script id="template" type="template">
         <div class="item">
@@ -37,6 +41,7 @@
             <button class="pause">pause</button>
             <button class="fullscreen">fullscreen</button>
             <canvas class="canvas" width="1920" height="1080"></canvas>
+            <input  class="range" type="range" min="0" max="100" value="0" />
         </div>
     </script>
 </head>

@@ -80,7 +80,7 @@ export class HttpChunkLoader extends PlayerParts {
     }
     private triggerMeta() {
         this.trigger("meta", {
-            totalDuration: this.indexData!.reduce((res, it) => res + it.duration, 0)
+            duration: this.indexData!.reduce((res, it) => res + it.duration, 0)
         })
     }
     private getSegment(time: number) {
