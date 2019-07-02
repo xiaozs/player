@@ -68,7 +68,7 @@ export class Player extends EventEmitter {
     }
 
     private eventBinding() {
-        this.eventBusProxy("meta", "play", "error");
+        this.eventBusProxy("meta", "frame", "error");
     }
 
     private eventBusProxy(...eventNameArr: string[]) {
@@ -87,6 +87,15 @@ export class Player extends EventEmitter {
     }
     seek(time: number) {
         this.eventBus.trigger("seek", time);
+    }
+    toFrame(index: number) {
+        index = parseInt(index as any, 10);
+        if (index < -10) {
+            index = -10;
+        } else if (index > 10) {
+            index = 10;
+        }
+        this.eventBus.trigger("toFrame", index);
     }
     destroy() {
         this.eventBus.trigger("destroy");

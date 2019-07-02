@@ -41,12 +41,26 @@ export class NormalStore extends PlayerParts {
         this.lastPts = time * 1000;
     }
 
+    @listen("toFrame")
+    private toFrame(index: number) {
+        this.trigger("pause");
+        let frameIndex = this.videoFrameStore.findIndex(frame => frame.pts >= this.lastPts);
+        //todo,超出缓存的时候要进行处理
+        frameIndex += index;
+        let frame = this.videoFrameStore[frameIndex];
+        if (frame) {
+            this.lastPts = frame.pts;
+            this.trigger("store-videoFrame", frame);
+            this.trigger("frame", frame.pts / 1000);
+        }
+    }
+
     private startVideoPlayLoop() {
         let vFrame = this.getCurrentFrame(this.videoFrameStore);
         let fps = 60;
         if (vFrame) {
             this.trigger("store-videoFrame", vFrame);
-            this.trigger("play", vFrame.pts / 1000);
+            this.trigger("frame", vFrame.pts / 1000);
             fps = vFrame.meta.fps;
         }
         this.vTimer = window.setTimeout(this.startVideoPlayLoop, 1000 / fps / this.rate);

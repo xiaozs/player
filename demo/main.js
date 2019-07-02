@@ -53,6 +53,10 @@ require(["../dist/index"], function (myPlayer) {
             .on("click", ".pause", onPause(url))
             .on("click", ".fullscreen", onFullscreen)
             .on("change", ".range", onRangeChange)
+            .on("click", ".frame-m-1", toFrame(-1))
+            .on("click", ".frame-a-1", toFrame(+1))
+            .on("click", ".frame-m-5", toFrame(-5))
+            .on("click", ".frame-a-5", toFrame(+5))
         $container.append($new);
     }
 
@@ -69,9 +73,16 @@ require(["../dist/index"], function (myPlayer) {
             });
             $item.data("player", player);
             player.on("meta", onMeta($item));
-            player.on("play", onPlaying($item))
+            player.on("frame", onFrame($item))
         }
         return player;
+    }
+
+    function toFrame(index) {
+        return function () {
+            var player = $(this).parent(".item").data("player");
+            player.toFrame(index);
+        }
     }
 
     function onMeta($item) {
@@ -80,7 +91,7 @@ require(["../dist/index"], function (myPlayer) {
         }
     }
 
-    function onPlaying($item) {
+    function onFrame($item) {
         return function (data) {
             $item.find(".range").val(data);
         }
