@@ -55,6 +55,7 @@ export class Player extends EventEmitter {
     }
 
     set rate(val: number) {
+        //todo,
         this.rate_ = val;
         this.eventBus.trigger("rateChange", val);
     }

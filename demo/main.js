@@ -57,6 +57,9 @@ require(["../dist/index"], function (myPlayer) {
             .on("click", ".frame-a-1", toFrame(+1))
             .on("click", ".frame-m-5", toFrame(-5))
             .on("click", ".frame-a-5", toFrame(+5))
+            .on("click", ".rate0-5", rate(0.5))
+            .on("click", ".rate1", rate(1))
+            .on("click", ".rate2", rate(2))
         $container.append($new);
     }
 
@@ -76,6 +79,13 @@ require(["../dist/index"], function (myPlayer) {
             player.on("frame", onFrame($item))
         }
         return player;
+    }
+
+    function rate(val) {
+        return function () {
+            var player = $(this).parent(".item").data("player");
+            player.rate = val;
+        }
     }
 
     function toFrame(index) {
