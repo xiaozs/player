@@ -32,7 +32,17 @@
         }
 
         .range {
-            width: 100%;
+            height: 20px;
+            border: 1px solid;
+            position: relative;
+        }
+
+        .range-inner {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            background: skyblue;
         }
     </style>
     <script id="template" type="template">
@@ -49,8 +59,11 @@
             <button class="rate0-5">*0.5</button>
             <button class="rate1">*1</button>
             <button class="rate2">*2</button>
+            <button class="rate4">*4</button>
             <canvas class="canvas" width="1920" height="1080"></canvas>
-            <input  class="range" type="range" min="0" max="100" value="0" />
+            <div class="range">
+                <div class="range-inner"></div>
+            </div>
         </div>
     </script>
 </head>

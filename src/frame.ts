@@ -35,4 +35,5 @@ export interface AudioFrame extends Frame {
 export interface Frame {
     data: Uint8Array;
     pts: number;
+    fps: number;
 }

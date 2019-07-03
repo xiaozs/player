@@ -32,6 +32,7 @@ export class Decoder extends PlayerParts {
 
     @listen("seek")
     private onSeek() {
+        //todo
         this.worker.postMessage({ type: "flushDecoder" });
     }
 
@@ -48,11 +49,12 @@ export class Decoder extends PlayerParts {
         if (typeof start === "number") {
             this.seekTime = start * 1000;
         }
+        let copyChunk = chunk.slice(0);
         this.worker.postMessage({
             type: "inputData",
             data: {
-                data: chunk
+                data: copyChunk
             }
-        }, [chunk]);
+        }, [copyChunk]);
     }
 }

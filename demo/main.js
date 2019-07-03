@@ -52,7 +52,7 @@ require(["../dist/index"], function (myPlayer) {
         $new.on("click", ".play", onPlay(url))
             .on("click", ".pause", onPause(url))
             .on("click", ".fullscreen", onFullscreen)
-            .on("change", ".range", onRangeChange)
+            .on("click", ".range", onRangeChange)
             .on("click", ".frame-m-1", toFrame(-1))
             .on("click", ".frame-a-1", toFrame(+1))
             .on("click", ".frame-m-5", toFrame(-5))
@@ -60,6 +60,7 @@ require(["../dist/index"], function (myPlayer) {
             .on("click", ".rate0-5", rate(0.5))
             .on("click", ".rate1", rate(1))
             .on("click", ".rate2", rate(2))
+            .on("click", ".rate4", rate(4))
         $container.append($new);
     }
 
@@ -97,20 +98,27 @@ require(["../dist/index"], function (myPlayer) {
 
     function onMeta($item) {
         return function (data) {
-            $item.find(".range").attr("max", data.duration);
+            $item.find(".range").data("max", data.duration);
         }
     }
 
     function onFrame($item) {
         return function (data) {
-            $item.find(".range").val(data);
+            let max = $item.find(".range").data("max");
+            let percent = data / max * 100;
+            $item.find(".range-inner").css("width", percent + "%");
         }
     }
 
-    function onRangeChange() {
+    function onRangeChange(e) {
         var $this = $(this);
-        var num = $this.val();
         var player = $this.parent(".item").data("player");
+
+        var x = e.offsetX;
+        var width = $this.width();
+        var max = $this.data("max");
+
+        var num = x / width * max;
         player.seek(num);
     }
 

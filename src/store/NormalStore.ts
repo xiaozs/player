@@ -21,7 +21,7 @@ export class NormalStore extends PlayerParts {
     private isPlaying = false;
 
     private getCurrentFrame<T extends Frame>(frameStore: T[]) {
-        let frame = frameStore.find(frame => frame.pts > this.lastPts);
+        let frame = frameStore.find(frame => frame.pts > this.lastPts && Math.abs(frame.pts - this.lastPts) <= (1000 / frame.fps * 4));
         if (frame) {
             this.lastPts = frame.pts;
         }
@@ -44,8 +44,8 @@ export class NormalStore extends PlayerParts {
     @listen("toFrame")
     private toFrame(index: number) {
         this.trigger("pause");
-        let frameIndex = this.videoFrameStore.findIndex(frame => frame.pts >= this.lastPts);
-        //todo,超出缓存的时候要进行处理
+        let frameIndex = this.videoFrameStore.findIndex(frame => frame.pts >= this.lastPts && Math.abs(frame.pts - this.lastPts) <= (1000 / frame.fps * 4));
+        if (frameIndex === -1) return;
         frameIndex += index;
         let frame = this.videoFrameStore[frameIndex];
         if (frame) {
@@ -61,7 +61,7 @@ export class NormalStore extends PlayerParts {
         if (vFrame) {
             this.trigger("store-videoFrame", vFrame);
             this.trigger("frame", vFrame.pts / 1000);
-            fps = vFrame.meta.fps;
+            fps = vFrame.fps;
         }
         this.vTimer = window.setTimeout(this.startVideoPlayLoop, 1000 / fps / this.rate);
     }
@@ -71,7 +71,7 @@ export class NormalStore extends PlayerParts {
         let fps = 60;
         if (aFrame) {
             this.trigger("store-audioFrame", aFrame);
-            fps = aFrame.meta.sample_rate / 1152 / 1000;
+            fps = aFrame.fps;
         }
         this.aTimer = window.setTimeout(this.startAudioPlayLoop, 1000 / fps / this.rate);
     }
@@ -101,12 +101,18 @@ export class NormalStore extends PlayerParts {
 
     @listen("decoder-videoFrame")
     private onVideoFrame(frame: VideoFrame) {
-        this.videoFrameStore.push(frame);
+        let index = this.videoFrameStore.findIndex(it => it.pts >= frame.pts);
+        let oldFrame = this.videoFrameStore[index];
+        if (oldFrame && oldFrame.pts === frame.pts) return;
+        this.videoFrameStore.splice(index, 0, frame);
     }
 
     @listen("decoder-audioFrame")
     private onAudioFrame(frame: AudioFrame) {
-        this.audioFrameStore.push(frame);
+        let index = this.audioFrameStore.findIndex(it => it.pts >= frame.pts);
+        let oldFrame = this.audioFrameStore[index];
+        if (oldFrame && oldFrame.pts === frame.pts) return;
+        this.audioFrameStore.splice(index, 0, frame);
     }
 
     @listen("rateChange")

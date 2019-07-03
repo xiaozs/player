@@ -201,7 +201,8 @@ function videoCallback(decoderId, buff, size, pts, paramJsonStr) {
         data: {
             data: data,
             meta: meta,
-            pts: pts
+            pts: pts,
+            fps: meta.fps
         }
     }, [data.buffer])
 }
@@ -215,7 +216,8 @@ function audioCallback(decoderId, buff, size, pts, paramJsonStr) {
         data: {
             data: data,
             meta: meta,
-            pts: pts
+            pts: pts,
+            fps: meta.sample_rate / 1152 / 1000
         }
     }, [data.buffer])
 }

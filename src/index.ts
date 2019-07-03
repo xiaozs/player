@@ -55,7 +55,12 @@ export class Player extends EventEmitter {
     }
 
     set rate(val: number) {
-        //todo,
+        val = parseFloat(val as any);
+        if (val < 0) {
+            val = 0.1;
+        } else if (val > 4) {
+            val = 4;
+        }
         this.rate_ = val;
         this.eventBus.trigger("rateChange", val);
     }
