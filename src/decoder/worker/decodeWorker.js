@@ -81,6 +81,7 @@ Decoder.prototype.uninitDecoder = function () {
     console.log("uninitDecoder");
     if (res === 0) {
         this.cacheBuffer.free();
+        self.postMessage({ type: "uninitDecoder" })
     } else {
         throw new Error("uninitDecoder 失败");
     }

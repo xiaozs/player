@@ -8,15 +8,23 @@ export class Decoder extends PlayerParts {
 
     constructor(options: PlayerOptions, eventBus: EventEmitter) {
         super(eventBus);
-
+        this.onDestroy = this.onDestroy.bind(this);
         this.worker = new Worker(options.workerUrl);
         this.openDecoder(options.fileName, options.loaderType !== "live")
         this.worker.addEventListener("message", e => {
             let eData = e.data;
             let type = eData.type;
+
+            if (type === "uninitDecoder") {
+                this.worker.terminate();
+                return;
+            }
+
             let data = eData.data;
             this.trigger(type, data);
         });
+        window.addEventListener("beforeunload", this.onDestroy)
+        window.addEventListener("unload", this.onDestroy);
     }
 
     private openDecoder(fileName: string, isReplay: boolean) {
@@ -32,11 +40,12 @@ export class Decoder extends PlayerParts {
     }
 
     @listen("destroy")
-    private onDestroy(): void {
+    private onDestroy() {
         this.off();
         this.worker.postMessage({ type: "closeDecoder" });
         this.worker.postMessage({ type: "uninitDecoder" });
-        this.worker.terminate();
+        window.removeEventListener("beforeunload", this.onDestroy);
+        window.removeEventListener("unload", this.onDestroy);
     }
 
     @listen("loader-chunked")
