@@ -40,6 +40,7 @@ class Segment {
 export class HttpChunkLoader extends PlayerParts {
     constructor(private options: LiveLoaderOptions, eventBus: EventEmitter) {
         super(eventBus);
+        this.getIndexData();
     }
     private currentTime: number = 0;
     private indexData: Segment[] | null = null;
@@ -100,7 +101,7 @@ export class HttpChunkLoader extends PlayerParts {
         await this.getIndexData();
         let seg = this.getSegment(time);
         if (seg) {
-            this.trigger("loader-chunked", await seg.data, seg.start);
+            this.trigger("loader-chunked", await seg.data);
             this.indexData!.forEach(it => it.hasSended = false);
         }
     }

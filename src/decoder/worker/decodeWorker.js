@@ -52,7 +52,6 @@ MailBox.prototype.shift = function () {
 
 MailBox.prototype.clear = function () {
     if (this.cmdArr.length > 500) {
-        console.log(this.cmdArr.length);
         this.cmdArr = this.cmdArr.filter(function (it, index) {
             return it.data.type !== "inputData" || index > 150;
         })
@@ -240,6 +239,9 @@ function messageHandler(e) {
             break;
         case "flushDecoder":
             decoder.flushDecoder();
+            break;
+        case "decodePacket":
+            decoder.decodePacket();
             break;
     }
 }

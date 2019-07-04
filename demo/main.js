@@ -51,6 +51,7 @@ require(["../dist/index"], function (myPlayer) {
         var $new = $(template);
         $new.on("click", ".play", onPlay(url))
             .on("click", ".pause", onPause(url))
+            .on("click", ".destroy", onDestroy)
             .on("click", ".fullscreen", onFullscreen)
             .on("click", ".range", onRangeChange)
             .on("click", ".frame-m-1", toFrame(-1))
@@ -62,6 +63,7 @@ require(["../dist/index"], function (myPlayer) {
             .on("click", ".rate2", rate(2))
             .on("click", ".rate4", rate(4))
         $container.append($new);
+        getPlayer($new, url);
     }
 
     function getPlayer($item, url) {
@@ -80,6 +82,13 @@ require(["../dist/index"], function (myPlayer) {
             player.on("frame", onFrame($item))
         }
         return player;
+    }
+
+    function onDestroy() {
+        var $item = $(this).parent(".item");
+        var player = $item.data("player");
+        player.destroy()
+        $item.remove();
     }
 
     function rate(val) {
