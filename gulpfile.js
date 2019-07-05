@@ -23,7 +23,7 @@ gulp.task("copy-worker", ["clear"], function () {
     return gulp.src("./src/decoder/worker/*").pipe(gulp.dest("./dist"));
 });
 gulp.task("build", ["clear", "copy-worker"], function () {
-    return browserify({ standalone: "myPlayer", debug: true })
+    return browserify({ standalone: "GoVideo", debug: true })
         .add("./src/index.ts")
         .plugin(tsify)
         .bundle()

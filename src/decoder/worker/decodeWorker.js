@@ -62,14 +62,14 @@ var timerMap = {};
 
 function Decoder() {
     this.cacheBuffer = new CacheBuffer(65536);
-    this.logLevel = 0;
+    this.logLevel = 1;
 }
 
 Decoder.prototype.initDecoder = function (videoCallback, audioCallback) {
     videoCallback = Module.addFunction(videoCallback);
     audioCallback = Module.addFunction(audioCallback);
 
-    var res = Module._initDecoder(this.logLevel, videoCallback, audioCallback);
+    var res = Module._initDecoder(this.logLevel, videoCallback, audioCallback, 1024 * 1024 * 10);
     console.log("initDecoder");
     if (res !== 0) {
         throw new Error("initDecoder 失败");
@@ -196,6 +196,7 @@ function videoCallback(decoderId, buff, size, pts, paramJsonStr) {
     var outArray = Module.HEAPU8.subarray(buff, buff + size);
     var data = new Uint8Array(outArray);
     var meta = getJSON(paramJsonStr);
+    console.log(data);
     self.postMessage({
         type: "decoder-videoFrame",
         data: {

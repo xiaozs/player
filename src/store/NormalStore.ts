@@ -99,20 +99,36 @@ export class NormalStore extends PlayerParts {
         this.off();
     }
 
+    private insertFrame<T extends Frame>(frameStore: T[], frame: T) {
+        var isInserted = false;
+        for (let i = frameStore.length - 1; i >= 0; i--) {
+            let it = frameStore[i];
+            if (frame.pts === it.pts) {
+                isInserted = true;
+                break;
+            }
+            if (it.pts < frame.pts) {
+                frameStore.splice(i + 1, 0, frame);
+                isInserted = true;
+                break;
+            }
+        }
+        if (!isInserted) {
+            frameStore.unshift(frame);
+        }
+
+        let index = frameStore.findIndex(it => it.pts >= (this.lastPts - 5 * 1000));
+        frameStore.splice(0, index);
+    }
+
     @listen("decoder-videoFrame")
     private onVideoFrame(frame: VideoFrame) {
-        let index = this.videoFrameStore.findIndex(it => it.pts >= frame.pts);
-        let oldFrame = this.videoFrameStore[index];
-        if (oldFrame && oldFrame.pts === frame.pts) return;
-        this.videoFrameStore.splice(index, 0, frame);
+        this.insertFrame(this.videoFrameStore, frame);
     }
 
     @listen("decoder-audioFrame")
     private onAudioFrame(frame: AudioFrame) {
-        let index = this.audioFrameStore.findIndex(it => it.pts >= frame.pts);
-        let oldFrame = this.audioFrameStore[index];
-        if (oldFrame && oldFrame.pts === frame.pts) return;
-        this.audioFrameStore.splice(index, 0, frame);
+        this.insertFrame(this.audioFrameStore, frame);
     }
 
     @listen("rateChange")

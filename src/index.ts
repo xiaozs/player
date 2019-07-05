@@ -74,7 +74,18 @@ export class Player extends EventEmitter {
     }
 
     private eventBinding() {
-        this.eventBusProxy("meta", "frame", "error");
+        this.eventBusProxy(
+            "volumeChange",
+            "rateChange",
+            "play",
+            "pause",
+            "seek",
+            "toFrame",
+            "destroy",
+            "meta",
+            "frame",
+            "error"
+        );
     }
 
     private eventBusProxy(...eventNameArr: string[]) {
