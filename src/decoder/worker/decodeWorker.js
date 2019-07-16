@@ -62,7 +62,7 @@ var timerMap = {};
 
 function Decoder() {
     this.cacheBuffer = new CacheBuffer(65536);
-    this.logLevel = 1;
+    this.logLevel = 0;
 }
 
 Decoder.prototype.initDecoder = function (videoCallback, audioCallback) {
@@ -196,7 +196,7 @@ function videoCallback(decoderId, buff, size, pts, paramJsonStr) {
     var outArray = Module.HEAPU8.subarray(buff, buff + size);
     var data = new Uint8Array(outArray);
     var meta = getJSON(paramJsonStr);
-    console.log(data);
+    console.log(pts);
     self.postMessage({
         type: "decoder-videoFrame",
         data: {

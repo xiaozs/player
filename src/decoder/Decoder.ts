@@ -6,7 +6,7 @@ import { PlayerOptions } from '../index';
 export class Decoder extends PlayerParts {
     private worker!: Worker;
 
-    constructor(options: PlayerOptions, eventBus: EventEmitter) {
+    constructor(private options: PlayerOptions, eventBus: EventEmitter) {
         super(eventBus);
         this.onDestroy = this.onDestroy.bind(this);
         this.worker = new Worker(options.workerUrl);
@@ -36,7 +36,8 @@ export class Decoder extends PlayerParts {
 
     @listen("seek")
     private onSeek() {
-        this.worker.postMessage({ type: "flushDecoder" });
+        this.worker.postMessage({ type: "closeDecoder" });
+        this.openDecoder(this.options.fileName, this.options.loaderType !== "live");
     }
 
     @listen("destroy")
