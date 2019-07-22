@@ -45,6 +45,7 @@ export class HttpChunkLoader extends PlayerParts {
     private currentTime: number = 0;
     private indexData: Segment[] | null = null;
     private isFirstPlay = true;
+    private rate = 1;
 
     private async getIndexData() {
         if (!this.indexData) {
@@ -88,6 +89,11 @@ export class HttpChunkLoader extends PlayerParts {
         return this.indexData!.find(it => time < it.end);
     }
 
+    @listen("rateChange")
+    private async onRateChange(val: number) {
+        this.rate = val;
+    }
+
     @listen("play")
     private async onPlay() {
         if (this.isFirstPlay) {
@@ -100,6 +106,10 @@ export class HttpChunkLoader extends PlayerParts {
     private async onSeek(time: number) {
         await this.getIndexData();
         let seg = this.getSegment(time);
+
+        console.log("seek:", time * 1000);
+        console.log("seg:", seg);
+
         if (seg) {
             this.trigger("loader-chunked", await seg.data);
             this.indexData!.forEach(it => it.hasSended = false);
@@ -110,11 +120,21 @@ export class HttpChunkLoader extends PlayerParts {
     private async onFrame(frame: VideoFrame) {
         this.currentTime = frame.pts / 1000;
         let seg = this.getSegment(this.currentTime)!;
-        if (this.currentTime + 5 > seg.end) {
-            let nextSeg = this.getSegment(seg.end);
-            if (nextSeg && !nextSeg.hasSended) {
-                nextSeg.hasSended = true;
-                this.trigger("loader-chunked", await nextSeg.data);
+        if (this.rate > 0) {
+            if (this.currentTime + 5 > seg.end) {
+                let nextSeg = this.getSegment(seg.end);
+                if (nextSeg && !nextSeg.hasSended) {
+                    nextSeg.hasSended = true;
+                    this.trigger("loader-chunked", await nextSeg.data);
+                }
+            }
+        } else {
+            if (seg.start < this.currentTime - 5) {
+                let prevSeg = this.getSegment(seg.start - 0.1);
+                if (prevSeg && !prevSeg.hasSended) {
+                    prevSeg.hasSended = true;
+                    this.trigger("loader-chunked", await prevSeg.data);
+                }
             }
         }
     }

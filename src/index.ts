@@ -46,7 +46,7 @@ export class Player extends EventEmitter {
             throw new Error();
         } else {
             this.volume_ = val;
-            this.trigger("volumeChange", val);
+            this.eventBus.trigger("volumeChange", val);
         }
     }
 
@@ -56,9 +56,10 @@ export class Player extends EventEmitter {
 
     set rate(val: number) {
         val = parseFloat(val as any);
-        if (val < 0) {
-            val = 0.1;
-        } else if (val > 4) {
+        if (val < -4) {
+            val = -4;
+        }
+        if (val > 4) {
             val = 4;
         }
         this.rate_ = val;
