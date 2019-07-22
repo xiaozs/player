@@ -9,6 +9,11 @@ $.get("/GoVideo/Device/RecordFileRetrievalRequest").then(function (data) {
             .data("fileData", it)
             .appendTo($nav);
     })
+    $("<div class='file'>local</div>")
+        .data("fileData", {
+            url: "./tss/test.m3u8"
+        })
+        .appendTo($nav);
 });
 
 $nav.on("click", ".file", function () {
@@ -19,32 +24,41 @@ $nav.on("click", ".file", function () {
 })
 
 function getUrl(data) {
-    return $.post("/GoVideo/Device/RecordFileOperRequest", JSON.stringify({
-        "Message": {
-            "OperType": 2,
-            "RcdFilename": data.RcdStartTime + "," + data.RcdStartTime + "," + data.RcdEndTime,
-            "DevID": data.DevID,
-            "ChnID": data.ChnID,
-            "StorageType": data.StorageType,
-            "RelevantReason": data.RelevantReason,
-            "IPAddr": 0,
-            "StreamEncodeInfo": {
-                "VideoStreamID": 17,
-                "Width": 704,
-                "Height": 576,
-                "Rate": 12.5,
-                "VBitrate": 1024,
-                "AudioStreamcodeid": 770,
-                "Samples": 8000,
-                "Bits": 16,
-                "Channel": 1,
-                "ABitrate": 16,
-                "StandardStream": 0
-            },
-            "DirectDevice": 1,
-            "StreamAgentType": 6
-        }
-    }))
+    if (data.url) {
+        var def = $.Deferred();
+        return def.resolve({
+            Message: {
+                RecFileURI: data.url
+            }
+        })
+    } else {
+        return $.post("/GoVideo/Device/RecordFileOperRequest", JSON.stringify({
+            "Message": {
+                "OperType": 2,
+                "RcdFilename": data.RcdStartTime + "," + data.RcdStartTime + "," + data.RcdEndTime,
+                "DevID": data.DevID,
+                "ChnID": data.ChnID,
+                "StorageType": data.StorageType,
+                "RelevantReason": data.RelevantReason,
+                "IPAddr": 0,
+                "StreamEncodeInfo": {
+                    "VideoStreamID": 17,
+                    "Width": 704,
+                    "Height": 576,
+                    "Rate": 12.5,
+                    "VBitrate": 1024,
+                    "AudioStreamcodeid": 770,
+                    "Samples": 8000,
+                    "Bits": 16,
+                    "Channel": 1,
+                    "ABitrate": 16,
+                    "StandardStream": 0
+                },
+                "DirectDevice": 1,
+                "StreamAgentType": 6
+            }
+        }))
+    }
 }
 
 function addPlayer(url) {
@@ -81,6 +95,7 @@ function getPlayer($item, url) {
         $item.data("player", player);
         player.on("meta", onMeta($item));
         player.on("frame", onFrame($item))
+        player.on("error", function (e) { console.error(e) });
     }
     return player;
 }

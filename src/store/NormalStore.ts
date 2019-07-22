@@ -21,7 +21,12 @@ export class NormalStore extends PlayerParts {
     private isPlaying = false;
 
     private getCurrentFrame<T extends Frame>(frameStore: T[]) {
-        let frame = frameStore.find(frame => frame.pts > this.lastPts && Math.abs(frame.pts - this.lastPts) <= (1000 / frame.fps * 4));
+        let frame: Frame | undefined;
+        if (this.rate > 0) {
+            frame = frameStore.find(frame => frame.pts > this.lastPts && Math.abs(frame.pts - this.lastPts) <= (1000 / frame.fps * 4));
+        } else {
+            frame = frameStore.find(frame => frame.pts < this.lastPts && Math.abs(frame.pts - this.lastPts) <= (1000 / frame.fps * 4));
+        }
         if (frame) {
             this.lastPts = frame.pts;
         }
@@ -63,7 +68,7 @@ export class NormalStore extends PlayerParts {
             this.trigger("frame", vFrame.pts / 1000);
             fps = vFrame.fps;
         }
-        this.vTimer = window.setTimeout(this.startVideoPlayLoop, 1000 / fps / this.rate);
+        this.vTimer = window.setTimeout(this.startVideoPlayLoop, 1000 / fps / Math.abs(this.rate));
     }
 
     private startAudioPlayLoop() {
@@ -73,7 +78,7 @@ export class NormalStore extends PlayerParts {
             this.trigger("store-audioFrame", aFrame);
             fps = aFrame.fps;
         }
-        this.aTimer = window.setTimeout(this.startAudioPlayLoop, 1000 / fps / this.rate);
+        this.aTimer = window.setTimeout(this.startAudioPlayLoop, 1000 / fps / Math.abs(this.rate));
     }
 
     private stopVideoPlayLoop() {

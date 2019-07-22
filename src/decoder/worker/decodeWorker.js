@@ -104,9 +104,9 @@ Decoder.prototype.closeDecoder = function () {
 }
 
 Decoder.prototype.inputData = function (data) {
+    console.log("inputData", data);
     var bufferData = this.cacheBuffer.get(data);
     var res = Module._inputData(1, bufferData.buffer, bufferData.size);
-    console.log("inputData", data);
     if (res !== 0) {
         throw new Error("inputData 失败");
     }

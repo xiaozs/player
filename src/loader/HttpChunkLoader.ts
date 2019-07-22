@@ -2,6 +2,7 @@ import { EventEmitter } from "../utils/EventEmitter";
 import { PlayerParts } from "../utils/PlayerParts";
 import { listen } from "../utils/listen";
 import { VideoFrame } from '../frame';
+import * as path from "path";
 
 export interface LiveLoaderOptions {
     url: string;
@@ -13,6 +14,7 @@ class Segment {
 
     constructor(
         public url: string,
+        public m3u8Url: string,
         public duration: number,
         public start: number,
         public end: number
@@ -32,8 +34,9 @@ class Segment {
     }
 
     private parsePath(url: string) {
-        //todo, 要转换相对url为绝对url，相对于this.options.url
-        return url;
+        let m3u8Url = path.resolve(this.m3u8Url);
+        let dirname = path.dirname(m3u8Url);
+        return path.resolve(dirname, url);
     }
 }
 
@@ -42,9 +45,7 @@ export class HttpChunkLoader extends PlayerParts {
         super(eventBus);
         this.getIndexData();
     }
-    private currentTime: number = 0;
     private indexData: Segment[] | null = null;
-    private isFirstPlay = true;
     private rate = 1;
 
     private async getIndexData() {
@@ -72,6 +73,7 @@ export class HttpChunkLoader extends PlayerParts {
                 let url = rows[i];
                 res.push(new Segment(
                     url,
+                    this.options.url,
                     duration,
                     now,
                     now += duration,
@@ -89,50 +91,59 @@ export class HttpChunkLoader extends PlayerParts {
         return this.indexData!.find(it => time < it.end);
     }
 
+    private resetSegmentFlags(without?: Segment) {
+        this.indexData!.forEach(it => it.hasSended = false);
+        if (without) {
+            without.hasSended = true;
+        }
+    }
+
     @listen("rateChange")
     private async onRateChange(val: number) {
         this.rate = val;
+        this.resetSegmentFlags();
+    }
+
+    @listen("toFrame")
+    private async toFrame(index: number) {
+        //todo
     }
 
     @listen("play")
     private async onPlay() {
-        if (this.isFirstPlay) {
-            this.onSeek(this.currentTime);
-            this.isFirstPlay = false;
-        }
+        let hasSended = this.indexData!.some(it => it.hasSended);
+        !hasSended && this.onSeek(0);
     }
 
     @listen("seek")
     private async onSeek(time: number) {
         await this.getIndexData();
         let seg = this.getSegment(time);
-
-        console.log("seek:", time * 1000);
-        console.log("seg:", seg);
-
         if (seg) {
+            this.resetSegmentFlags(seg);
             this.trigger("loader-chunked", await seg.data);
-            this.indexData!.forEach(it => it.hasSended = false);
         }
     }
 
     @listen("store-videoFrame")
     private async onFrame(frame: VideoFrame) {
-        this.currentTime = frame.pts / 1000;
-        let seg = this.getSegment(this.currentTime)!;
+        let currentTime = frame.pts / 1000;
+        let seg = this.getSegment(currentTime);
+        if (!seg) return;
         if (this.rate > 0) {
-            if (this.currentTime + 5 > seg.end) {
+            if (currentTime + 5 > seg.end) {
                 let nextSeg = this.getSegment(seg.end);
                 if (nextSeg && !nextSeg.hasSended) {
-                    nextSeg.hasSended = true;
+                    this.resetSegmentFlags(nextSeg);
                     this.trigger("loader-chunked", await nextSeg.data);
                 }
             }
         } else {
-            if (seg.start < this.currentTime - 5) {
+            console.log("currentTime:", currentTime)
+            if (seg.start > currentTime - 5) {
                 let prevSeg = this.getSegment(seg.start - 0.1);
                 if (prevSeg && !prevSeg.hasSended) {
-                    prevSeg.hasSended = true;
+                    this.resetSegmentFlags(prevSeg);
                     this.trigger("loader-chunked", await prevSeg.data);
                 }
             }
