@@ -25,7 +25,7 @@ MailBox.prototype.startLoop = function () {
         } catch (e) {
             self.postMessage({
                 type: "error",
-                data: JSON.stringify(e)
+                data: e.stack
             });
         }
     }
@@ -185,7 +185,7 @@ function main() {
         this.isFailed = true;
         self.postMessage({
             type: "error",
-            data: JSON.stringify(e)
+            data: e.stack
         })
     }
 

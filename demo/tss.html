@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <input type="text" id="input" value="./tss/playback_m=0&dev=_0&ch=0&type=bytime&bt=1562562610&et=1562562719&token=0&tc=analyze_0.ts" />
+    <button id="button">submit</button>
+    <button id="flushDecoder">flushDecoder</button>
+    <script>
+        let worker = new Worker("./dist/decodeWorker.js");
+        let input = document.getElementById("input");
+        let button = document.getElementById("button");
+        let flushDecoder = document.getElementById("flushDecoder");
+        worker.postMessage({
+            type: "openDecoder",
+            data: { fileName: "ts", isReplay: true }
+        })
+
+        button.addEventListener("click", async function () {
+            let value = input.value;
+            let res = await fetch(value, { mode: "cors" });
+            let buffer = await res.arrayBuffer();
+            worker.postMessage({
+                type: "inputData",
+                data: {
+                    data: buffer
+                }
+            }, [buffer]);
+        })
+        flushDecoder.addEventListener("click", function () {
+            worker.postMessage({
+                type: "flushDecoder"
+            })
+        })
+    </script>
+</body>
+
+</html>
