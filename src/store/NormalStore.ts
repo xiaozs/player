@@ -3,6 +3,17 @@ import { EventEmitter } from "../utils/EventEmitter";
 import { listen } from "../utils/listen";
 import { VideoFrame, AudioFrame, Frame } from "../frame";
 
+function findLast<T>(arr: T[], predicate: (value: T) => boolean): T | undefined {
+    for (let i = arr.length - 1; i >= 0; i--) {
+        let it = arr[i];
+        let flag = predicate(it);
+        if (flag) {
+            return it;
+        }
+    }
+    return;
+}
+
 export class NormalStore extends PlayerParts {
     constructor(eventBus: EventEmitter) {
         super(eventBus);
@@ -20,12 +31,12 @@ export class NormalStore extends PlayerParts {
 
     private isPlaying = false;
 
-    private getCurrentFrame<T extends Frame>(frameStore: T[]) {
+    private getNextFrame<T extends Frame>(frameStore: T[]) {
         let frame: Frame | undefined;
         if (this.rate > 0) {
             frame = frameStore.find(frame => frame.pts > this.lastPts && Math.abs(frame.pts - this.lastPts) <= (1000 / frame.fps * 4));
         } else {
-            frame = frameStore.find(frame => frame.pts < this.lastPts && Math.abs(frame.pts - this.lastPts) <= (1000 / frame.fps * 4));
+            frame = findLast(frameStore, frame => frame.pts < this.lastPts && Math.abs(frame.pts - this.lastPts) <= (1000 / frame.fps * 4));
         }
         if (frame) {
             this.lastPts = frame.pts;
@@ -61,7 +72,7 @@ export class NormalStore extends PlayerParts {
     }
 
     private startVideoPlayLoop() {
-        let vFrame = this.getCurrentFrame(this.videoFrameStore);
+        let vFrame = this.getNextFrame(this.videoFrameStore);
         let fps = 60;
         if (vFrame) {
             this.trigger("store-videoFrame", vFrame);
@@ -72,7 +83,7 @@ export class NormalStore extends PlayerParts {
     }
 
     private startAudioPlayLoop() {
-        let aFrame = this.getCurrentFrame(this.audioFrameStore);
+        let aFrame = this.getNextFrame(this.audioFrameStore);
         let fps = 60;
         if (aFrame) {
             this.trigger("store-audioFrame", aFrame);
