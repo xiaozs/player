@@ -40,6 +40,7 @@ export class NormalStore extends PlayerParts {
     private aTimer?: number;
     private lastPts = 0;
     private meta: Segment[] = [];
+    private toFrameFlag = false;
 
     private isPlaying = false;
 
@@ -66,22 +67,58 @@ export class NormalStore extends PlayerParts {
 
     @listen("seek")
     private seek(time: number) {
+        this.toFrameFlag = true;
         this.lastPts = time * 1000;
     }
 
     @listen("toFrame")
-    private toFrame(index: number) {
+    private onToFrame(index: number) {
         this.trigger("pause");
-        //todo
-        let frameIndex = this.videoFrameStore.findIndex(frame => frame.pts >= this.lastPts && Math.abs(frame.pts - this.lastPts) <= (1000 / frame.fps * 4));
-        if (frameIndex === -1) return;
-        frameIndex += index;
-        let frame = this.videoFrameStore[frameIndex];
-        if (frame) {
-            this.lastPts = frame.pts;
-            this.trigger("store-videoFrame", frame);
-            this.trigger("frame", frame.pts / 1000);
+        this.toFrame(this.videoFrameStore, index);
+        this.toFrame(this.audioFrameStore, index);
+    }
+
+    private toFrame(frameStore: Frame[], index: number) {
+        let baseIndex = this.findFrameIndexByPts(frameStore, this.lastPts);
+        if (baseIndex === -1) {
+            this.toFrameFlag = true;
+            return;
         }
+
+        this.toFrameFlag = false;
+
+        let frame = frameStore[baseIndex + index];
+        if (!frame) {
+            let baseFrame = frameStore[baseIndex];
+            let newFramePts = baseFrame.pts + (1000 / baseFrame.fps) * index;
+
+            if (this.isPtsOverflow(newFramePts)) return;
+
+            this.trigger("store-needFrame", newFramePts);
+            this.lastPts = newFramePts;
+            setTimeout(() => this.toFrame(frameStore, 0), 60);
+            return;
+        }
+
+        this.lastPts = frame.pts;
+        this.trigger("store-videoFrame", frame);
+        this.trigger("frame", frame.pts / 1000);
+    }
+
+    private isPtsOverflow(pts: number) {
+        let min = 0;
+        let max = this.meta[this.meta.length - 1].end * 1000;
+        return pts < min || max < pts;
+    }
+
+    private findFrameIndexByPts(frameStore: Frame[], pts: number) {
+        // 先找精确的
+        let index = frameStore.findIndex(it => it.pts === pts);
+        if (index === -1) {
+            //再找模糊的
+            index = frameStore.findIndex(it => Math.abs(it.pts - pts) <= (1000 / it.fps * 2));
+        }
+        return index;
     }
 
     private startVideoPlayLoop() {
@@ -161,14 +198,14 @@ export class NormalStore extends PlayerParts {
         let nextSeg = this.meta[index + 1];
 
         let start: number;
-        if (prevSeg) {
+        if (prevSeg && this.rate < 0) {
             start = prevSeg.start;
         } else {
             start = currentSeg.start;
         }
 
         let end: number;
-        if (nextSeg) {
+        if (nextSeg && this.rate > 0) {
             end = nextSeg.end;
         } else {
             end = currentSeg.end;
@@ -186,12 +223,14 @@ export class NormalStore extends PlayerParts {
     private onVideoFrame(frame: VideoFrame) {
         this.insertFrame(this.videoFrameStore, frame);
         this.cacheControll(this.videoFrameStore);
+        this.toFrameFlag && this.toFrame(this.videoFrameStore, 0);
     }
 
     @listen("decoder-audioFrame")
     private onAudioFrame(frame: AudioFrame) {
         this.insertFrame(this.audioFrameStore, frame);
         this.cacheControll(this.audioFrameStore);
+        this.toFrameFlag && this.toFrame(this.audioFrameStore, 0);
     }
 
     @listen("rateChange")
@@ -213,5 +252,7 @@ export class NormalStore extends PlayerParts {
         this.aTimer = undefined;
         this.lastPts = 0;
         this.meta = [];
+
+        this.toFrameFlag = false;
     }
 }

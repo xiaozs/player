@@ -123,4 +123,9 @@ export class HttpChunkLoader extends PlayerParts {
         this.indexData = null;
         this.getIndexData();
     }
+
+    @listen("store-needFrame")
+    onNeedFrame(pts: number) {
+        this.onSeek(pts / 1000);
+    }
 }
