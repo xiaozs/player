@@ -212,7 +212,7 @@ var player = new Player({
     // options
 });
 
-// 视频url 只读
+// 视频url 可读写
 player.url;
 
 // 是否播放中 只读

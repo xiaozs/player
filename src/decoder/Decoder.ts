@@ -34,6 +34,11 @@ export class Decoder extends PlayerParts {
         })
     }
 
+    @listen("changeUrl")
+    onChangeUrl(url: string) {
+        this.worker.postMessage({ type: "flushDecoder" })
+    }
+
     @listen("seek")
     private onSeek() {
         this.worker.postMessage({ type: "flushDecoder" })

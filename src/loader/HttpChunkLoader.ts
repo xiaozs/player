@@ -75,7 +75,7 @@ export class HttpChunkLoader extends PlayerParts {
 
     @listen("toFrame")
     private async toFrame(index: number) {
-        //todo
+
     }
 
     @listen("play")
@@ -116,5 +116,11 @@ export class HttpChunkLoader extends PlayerParts {
                 }
             }
         }
+    }
+
+    @listen("changeUrl")
+    onChangeUrl(url: string) {
+        this.indexData = null;
+        this.getIndexData();
     }
 }

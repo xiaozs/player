@@ -9,13 +9,13 @@ import { NormalStore } from "./store/NormalStore";
 import "reflect-metadata";
 
 export interface PlayerOptions {
-    readonly canvas: HTMLCanvasElement;
+    canvas: HTMLCanvasElement;
 
-    readonly fileName: string;
-    readonly url: string;
+    fileName: string;
+    url: string;
 
-    readonly loaderType: string;
-    readonly workerUrl: string;
+    loaderType: string;
+    workerUrl: string;
 }
 
 let defaultOptions = {
@@ -31,6 +31,11 @@ export class Player extends EventEmitter {
 
     get url() {
         return this.option.url;
+    }
+
+    set url(val: string) {
+        this.option.url = val;
+        this.eventBus.trigger("changeUrl", val);
     }
 
     get isPlaying() {
@@ -66,7 +71,7 @@ export class Player extends EventEmitter {
         this.eventBus.trigger("rateChange", val);
     }
 
-    constructor(option: PlayerOptions) {
+    constructor(option: Readonly<PlayerOptions>) {
         super();
         this.option = Object.assign({}, defaultOptions, option);
 

@@ -203,4 +203,15 @@ export class NormalStore extends PlayerParts {
     private onMeta(meta: Segment[]) {
         this.meta = meta;
     }
+
+    @listen("changeUrl")
+    onChangeUrl(url: string) {
+        this.videoFrameStore = [];
+        this.audioFrameStore = [];
+
+        this.vTimer = undefined;
+        this.aTimer = undefined;
+        this.lastPts = 0;
+        this.meta = [];
+    }
 }

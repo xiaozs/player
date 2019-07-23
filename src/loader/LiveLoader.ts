@@ -49,4 +49,9 @@ export class LiveLoader extends PlayerParts {
             this.trigger("error", e);
         }
     }
+
+    @listen("changeUrl")
+    onChangeUrl(url: string) {
+        this.onPause();
+    }
 }
