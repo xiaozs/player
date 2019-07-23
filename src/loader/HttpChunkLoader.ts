@@ -134,7 +134,9 @@ export class HttpChunkLoader extends PlayerParts {
             if (currentTime + 5 > seg.end) {
                 let nextSeg = this.getSegment(seg.end);
                 if (nextSeg && !nextSeg.hasSended) {
-                    this.resetSegmentFlags(nextSeg);
+                    console.log("currentTime", currentTime);
+                    console.log("seg", nextSeg);
+                    nextSeg.hasSended = true;
                     this.trigger("loader-chunked", await nextSeg.data);
                 }
             }
@@ -143,7 +145,7 @@ export class HttpChunkLoader extends PlayerParts {
             if (seg.start > currentTime - 5) {
                 let prevSeg = this.getSegment(seg.start - 0.1);
                 if (prevSeg && !prevSeg.hasSended) {
-                    this.resetSegmentFlags(prevSeg);
+                    prevSeg.hasSended = true;
                     this.trigger("loader-chunked", await prevSeg.data);
                 }
             }
