@@ -85,7 +85,8 @@ export class Player extends EventEmitter {
             "destroy",
             "meta",
             "frame",
-            "error"
+            "error",
+            "end"
         );
     }
 

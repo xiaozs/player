@@ -143,6 +143,7 @@ player.once(eventName, function(...args) { })
 |销毁|"destroy"||
 |渲染一帧|"frame"|时间点（秒）|
 |异常|"error"|异常对象|
+|播放结束|"end"||
 
 * 解除事件监听
 ```js
