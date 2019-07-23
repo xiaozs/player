@@ -2,6 +2,7 @@ import { PlayerParts } from "../utils/PlayerParts";
 import { EventEmitter } from "../utils/EventEmitter";
 import { listen } from "../utils/listen";
 import { VideoFrame, AudioFrame, Frame } from "../frame";
+import { Segment } from '../utils/Segment';
 
 function findLast<T>(arr: T[], predicate: (value: T) => boolean): T | undefined {
     for (let i = arr.length - 1; i >= 0; i--) {
@@ -12,6 +13,16 @@ function findLast<T>(arr: T[], predicate: (value: T) => boolean): T | undefined 
         }
     }
     return;
+}
+function findLastIndex<T>(arr: T[], predicate: (value: T) => boolean): number {
+    for (let i = arr.length - 1; i >= 0; i--) {
+        let it = arr[i];
+        let flag = predicate(it);
+        if (flag) {
+            return i;
+        }
+    }
+    return -1;
 }
 
 export class NormalStore extends PlayerParts {
@@ -28,6 +39,7 @@ export class NormalStore extends PlayerParts {
     private vTimer?: number;
     private aTimer?: number;
     private lastPts = 0;
+    private meta: Segment[] = [];
 
     private isPlaying = false;
 
@@ -60,6 +72,7 @@ export class NormalStore extends PlayerParts {
     @listen("toFrame")
     private toFrame(index: number) {
         this.trigger("pause");
+        //todo
         let frameIndex = this.videoFrameStore.findIndex(frame => frame.pts >= this.lastPts && Math.abs(frame.pts - this.lastPts) <= (1000 / frame.fps * 4));
         if (frameIndex === -1) return;
         frameIndex += index;
@@ -116,39 +129,60 @@ export class NormalStore extends PlayerParts {
     }
 
     private insertFrame<T extends Frame>(frameStore: T[], frame: T) {
-        var isInserted = false;
-        for (let i = frameStore.length - 1; i >= 0; i--) {
-            let it = frameStore[i];
-            if (frame.pts === it.pts) {
-                isInserted = true;
-                break;
-            }
-            if (it.pts < frame.pts) {
-                frameStore.splice(i + 1, 0, frame);
-                isInserted = true;
-                break;
+        let index = findLastIndex(frameStore, it => it.pts <= frame.pts)
+        if (index === -1) {
+            frameStore.unshift(frame);
+        } else {
+            let it = frameStore[index];
+            if (it.pts !== frame.pts) {
+                frameStore.splice(index + 1, 0, frame);
             }
         }
-        if (!isInserted) {
-            frameStore.unshift(frame);
+    }
+
+    private cacheControll<T extends Frame>(frameStore: T[]) {
+        let index = findLastIndex(this.meta, it => it.start * 1000 <= this.lastPts);
+        let prevSeg = this.meta[index - 1];
+        let currentSeg = this.meta[index];
+        let nextSeg = this.meta[index + 1];
+
+        let start: number;
+        if (prevSeg) {
+            start = prevSeg.start;
+        } else {
+            start = currentSeg.start;
         }
 
-        let index = frameStore.findIndex(it => it.pts >= (this.lastPts - 5 * 1000));
-        frameStore.splice(0, index);
+        let end: number;
+        if (nextSeg) {
+            end = nextSeg.end;
+        } else {
+            end = currentSeg.end;
+        }
+
+        let newCache = frameStore.filter(it => start * 1000 <= it.pts && it.pts < end * 1000);
+        frameStore.splice(0, frameStore.length, ...newCache);
     }
 
     @listen("decoder-videoFrame")
     private onVideoFrame(frame: VideoFrame) {
         this.insertFrame(this.videoFrameStore, frame);
+        this.cacheControll(this.videoFrameStore);
     }
 
     @listen("decoder-audioFrame")
     private onAudioFrame(frame: AudioFrame) {
         this.insertFrame(this.audioFrameStore, frame);
+        this.cacheControll(this.audioFrameStore);
     }
 
     @listen("rateChange")
     private onRateChange(rate: number) {
         this.rate = rate;
+    }
+
+    @listen("loader-meta")
+    private onMeta(meta: Segment[]) {
+        this.meta = meta;
     }
 }

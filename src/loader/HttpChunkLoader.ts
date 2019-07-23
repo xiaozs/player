@@ -2,42 +2,10 @@ import { EventEmitter } from "../utils/EventEmitter";
 import { PlayerParts } from "../utils/PlayerParts";
 import { listen } from "../utils/listen";
 import { VideoFrame } from '../frame';
-import * as path from "path";
+import { Segment } from '../utils/Segment';
 
 export interface LiveLoaderOptions {
     url: string;
-}
-
-class Segment {
-    private _data: Promise<ArrayBuffer> | null = null;
-    hasSended = false;
-
-    constructor(
-        public url: string,
-        public m3u8Url: string,
-        public duration: number,
-        public start: number,
-        public end: number
-    ) { }
-
-    get data() {
-        if (!this._data) {
-            this._data = this.fetchSegment();
-        }
-        return this._data;
-    }
-
-    private async fetchSegment() {
-        let url = this.parsePath(this.url);
-        let res = await fetch(url, { mode: "cors" });
-        return await res.arrayBuffer();
-    }
-
-    private parsePath(url: string) {
-        let m3u8Url = path.resolve(this.m3u8Url);
-        let dirname = path.dirname(m3u8Url);
-        return path.resolve(dirname, url);
-    }
 }
 
 export class HttpChunkLoader extends PlayerParts {
@@ -85,7 +53,8 @@ export class HttpChunkLoader extends PlayerParts {
     private triggerMeta() {
         this.trigger("meta", {
             duration: this.indexData!.reduce((res, it) => res + it.duration, 0)
-        })
+        });
+        this.trigger("loader-meta", this.indexData);
     }
     private getSegment(time: number) {
         return this.indexData!.find(it => time < it.end);
