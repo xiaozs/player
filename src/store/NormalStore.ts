@@ -160,6 +160,10 @@ export class NormalStore extends PlayerParts {
             end = currentSeg.end;
         }
 
+        // 用于应付边界值会被削掉的情况
+        start -= 0.5;
+        end += 0.5;
+
         let newCache = frameStore.filter(it => start * 1000 <= it.pts && it.pts < end * 1000);
         frameStore.splice(0, frameStore.length, ...newCache);
     }
