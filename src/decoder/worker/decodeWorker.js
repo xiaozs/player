@@ -123,7 +123,7 @@ Decoder.prototype.decodePacket = function () {
 Decoder.prototype.flushDecoder = function () {
     var res = Module._flushDecoder(1);
     console.log("flushDecoder");
-    if (res !== 0) {
+    if (res !== 0 && res !== 7) {
         throw new Error("flushDecoder 失败");
     }
 }
