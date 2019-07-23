@@ -92,7 +92,7 @@ export class NormalStore extends PlayerParts {
             this.trigger("frame", vFrame.pts / 1000);
             fps = vFrame.fps;
             if (this.isLastFrame(vFrame)) {
-                this.trigger("end");
+                return this.trigger("end");
             }
         }
         this.vTimer = window.setTimeout(this.startVideoPlayLoop, 1000 / fps / Math.abs(this.rate));
@@ -122,6 +122,11 @@ export class NormalStore extends PlayerParts {
     private stopAudioPlayLoop() {
         clearTimeout(this.aTimer);
         this.aTimer = undefined;
+    }
+
+    @listen("end")
+    private onEnd() {
+        this.trigger("pause");
     }
 
     @listen("pause")

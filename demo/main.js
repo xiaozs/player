@@ -96,6 +96,7 @@ function getPlayer($item, url) {
         player.on("meta", onMeta($item));
         player.on("frame", onFrame($item))
         player.on("error", function (e) { console.error(e) });
+        player.on("end", function () { console.log("播放完毕") });
     }
     return player;
 }
