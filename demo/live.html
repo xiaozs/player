@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>实时播放</title>
+    <style>
+        .canvas {
+            display: block;
+            width: 800px;
+            height: 600px;
+        }
+    </style>
+    <script id="template" type="template">
+        <div class="item">
+            <input style="width:800px;" type="text" class="input" value="http://192.168.27.35:1980/live/h265_1080p.ts" />
+            <button class="play">play</button>
+            <button class="pause">pause</button>
+            <button class="fullscreen">fullscreen</button>
+            <canvas class="canvas" width="1920" height="1080"></canvas>
+        </div>
+    </script>
+</head>
+
+<body>
+    <h1><a href="./index.html" target="replay">跳转到录像回放</a></h1>
+
+    <button id="add">add player</button>
+    <div id="container">
+
+    </div>
+    <script src="../dist/index.js"></script>
+    <script src="../node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="./live.js"></script>
+</body>
+
+</html>
