@@ -134,14 +134,11 @@ export class HttpChunkLoader extends PlayerParts {
             if (currentTime + 5 > seg.end) {
                 let nextSeg = this.getSegment(seg.end);
                 if (nextSeg && !nextSeg.hasSended) {
-                    console.log("currentTime", currentTime);
-                    console.log("seg", nextSeg);
                     nextSeg.hasSended = true;
                     this.trigger("loader-chunked", await nextSeg.data);
                 }
             }
         } else {
-            console.log("currentTime:", currentTime)
             if (seg.start > currentTime - 5) {
                 let prevSeg = this.getSegment(seg.start - 0.1);
                 if (prevSeg && !prevSeg.hasSended) {
