@@ -36,8 +36,7 @@ export class Decoder extends PlayerParts {
 
     @listen("seek")
     private onSeek() {
-        this.worker.postMessage({ type: "closeDecoder" });
-        this.openDecoder(this.options.fileName, this.options.loaderType !== "live");
+        this.worker.postMessage({ type: "flushDecoder" })
     }
 
     @listen("destroy")

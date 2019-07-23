@@ -196,7 +196,6 @@ function videoCallback(decoderId, buff, size, pts, paramJsonStr) {
     var outArray = Module.HEAPU8.subarray(buff, buff + size);
     var data = new Uint8Array(outArray);
     var meta = getJSON(paramJsonStr);
-    console.log(pts);
     self.postMessage({
         type: "decoder-videoFrame",
         data: {
