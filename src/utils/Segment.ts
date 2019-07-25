@@ -1,4 +1,4 @@
-import * as path from "path";
+import * as Url from "url";
 export class Segment {
     private _data: Promise<ArrayBuffer> | null = null;
     hasSended = false;
@@ -15,8 +15,6 @@ export class Segment {
         return await res.arrayBuffer();
     }
     private parsePath(url: string) {
-        let m3u8Url = path.resolve(this.m3u8Url);
-        let dirname = path.dirname(m3u8Url);
-        return path.resolve(dirname, url);
+        return Url.resolve(this.m3u8Url, url);
     }
 }

@@ -15,6 +15,7 @@ export class HttpChunkLoader extends PlayerParts {
     }
     private indexData: Segment[] | null = null;
     private rate = 1;
+    private isPlaying = false;
 
     private async getIndexData() {
         if (!this.indexData) {
@@ -80,6 +81,7 @@ export class HttpChunkLoader extends PlayerParts {
 
     @listen("play")
     private async onPlay() {
+        await this.getIndexData();
         let hasSended = this.indexData!.some(it => it.hasSended);
         !hasSended && this.onSeek(0);
     }
