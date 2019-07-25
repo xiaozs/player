@@ -237,6 +237,7 @@ function messageHandler(e) {
             break;
         case "inputData":
             decoder.inputData(data.data);
+            decoder.flushDecoder();
             break;
         case "flushDecoder":
             decoder.flushDecoder();

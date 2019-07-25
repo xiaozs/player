@@ -128,8 +128,11 @@ export class NormalStore extends PlayerParts {
             this.trigger("store-videoFrame", vFrame);
             this.trigger("frame", vFrame.pts / 1000);
             fps = vFrame.fps;
-            if (this.isLastFrame(vFrame)) {
-                return this.trigger("end");
+            if (this.rate > 0 && this.isLastFrame(vFrame)) {
+                return this.trigger("end", { backward: false });
+            }
+            if (this.rate < 0 && this.isFirstFrame(vFrame)) {
+                return this.trigger("end", { backward: true });
             }
         }
         this.vTimer = window.setTimeout(this.startVideoPlayLoop, 1000 / fps / Math.abs(this.rate));
@@ -149,6 +152,10 @@ export class NormalStore extends PlayerParts {
         let length = this.meta.length;
         let lastSeg = this.meta[length - 1];
         return lastSeg.end * 1000 <= frame.pts;
+    }
+
+    private isFirstFrame(frame: Frame) {
+        return frame.pts === 0;
     }
 
     private stopVideoPlayLoop() {

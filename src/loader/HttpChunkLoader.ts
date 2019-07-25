@@ -15,7 +15,6 @@ export class HttpChunkLoader extends PlayerParts {
     }
     private indexData: Segment[] | null = null;
     private rate = 1;
-    private isPlaying = false;
 
     private async getIndexData() {
         if (!this.indexData) {
@@ -71,12 +70,6 @@ export class HttpChunkLoader extends PlayerParts {
     @listen("rateChange")
     private async onRateChange(val: number) {
         this.rate = val;
-        this.resetSegmentFlags();
-    }
-
-    @listen("toFrame")
-    private async toFrame(index: number) {
-
     }
 
     @listen("play")
@@ -105,7 +98,7 @@ export class HttpChunkLoader extends PlayerParts {
             if (currentTime + 5 > seg.end) {
                 let nextSeg = this.getSegment(seg.end);
                 if (nextSeg && !nextSeg.hasSended) {
-                    nextSeg.hasSended = true;
+                    this.resetSegmentFlags(nextSeg);
                     this.trigger("loader-chunked", await nextSeg.data);
                 }
             }
@@ -113,7 +106,7 @@ export class HttpChunkLoader extends PlayerParts {
             if (seg.start > currentTime - 5) {
                 let prevSeg = this.getSegment(seg.start - 0.1);
                 if (prevSeg && !prevSeg.hasSended) {
-                    prevSeg.hasSended = true;
+                    this.resetSegmentFlags(prevSeg);
                     this.trigger("loader-chunked", await prevSeg.data);
                 }
             }

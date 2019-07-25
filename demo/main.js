@@ -72,6 +72,7 @@ function addPlayer(url) {
         .on("click", ".frame-a-1", toFrame(+1))
         .on("click", ".frame-m-5", toFrame(-5))
         .on("click", ".frame-a-5", toFrame(+5))
+        .on("click", ".rate-4", rate(-4))
         .on("click", ".rate-1", rate(-1))
         .on("click", ".rate0-5", rate(0.5))
         .on("click", ".rate1", rate(1))
