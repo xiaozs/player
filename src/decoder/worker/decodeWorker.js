@@ -239,9 +239,6 @@ function messageHandler(e) {
             decoder.inputData(data.data);
             decoder.flushDecoder();
             break;
-        case "flushDecoder":
-            decoder.flushDecoder();
-            break;
         case "decodePacket":
             decoder.decodePacket();
             break;
