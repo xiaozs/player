@@ -221,7 +221,7 @@ player.isPlaying
 // 音量 可读写 (正数)
 player.volume
 
-// 播放速度 可读写 (0, 4]
+// 播放速度 可读写 [-4, 4]
 player.rate
 ```
 
