@@ -2,7 +2,13 @@ import * as Url from "url";
 export class Segment {
     private _data: Promise<ArrayBuffer> | null = null;
     hasSended = false;
-    constructor(public url: string, public m3u8Url: string, public duration: number, public start: number, public end: number) { }
+    constructor(
+        public url: string,
+        public m3u8Url: string,
+        public duration: number,
+        public start: number,
+        public end: number
+    ) { }
     get data() {
         if (!this._data) {
             this._data = this.fetchSegment();

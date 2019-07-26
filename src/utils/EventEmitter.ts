@@ -1,5 +1,3 @@
-import { Map } from "./Map";
-
 interface FunctionMeta {
     fn: Function,
     isOnce: Boolean
@@ -42,7 +40,7 @@ export class EventEmitter {
         if (argsLength === 0) {
             this.eventMap = new Map();
         } else if (argsLength === 1) {
-            this.eventMap.remove(eventName!);
+            this.eventMap.delete(eventName!);
         } else if (argsLength === 2) {
             let arr = this.getMetaArr(eventName!);
             let newArr = arr.filter(it => it.fn !== callback);
@@ -54,7 +52,6 @@ export class EventEmitter {
         let arr = this.getMetaArr(eventName!);
         for (let it of arr) {
             it.fn(...args);
-            // setTimeout(() => it.fn(...args));
         }
         let newArr = arr.filter(it => !it.isOnce);
         this.eventMap.set(eventName, newArr);
