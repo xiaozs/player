@@ -1,65 +1,3 @@
-function MailBox(handler) {
-    this.cmdArr = [];
-    this.handler = handler;
-    this.timer = null;
-    this.isRuning = false;
-}
-
-MailBox.prototype.start = function () {
-    this.isRuning = true;
-    this.startLoop();
-}
-
-MailBox.prototype.stop = function () {
-    this.isRuning = false;
-}
-
-MailBox.prototype.startLoop = function () {
-    this.clear();
-    while (true) {
-        var cmd = this.shift();
-        if (!cmd) return;
-
-        try {
-            this.handler(cmd);
-        } catch (e) {
-            self.postMessage({
-                type: "error",
-                data: e.stack
-            });
-        }
-    }
-}
-
-MailBox.prototype.stop = function () {
-    this.isRuning = false;
-}
-
-MailBox.prototype.push = function (cmd) {
-    this.cmdArr.push(cmd);
-    if (this.isRuning) {
-        clearTimeout(this.timer);
-        var that = this;
-        this.timer = setTimeout(function () {
-            that.startLoop();
-        });
-    }
-}
-
-MailBox.prototype.shift = function () {
-    return this.cmdArr.shift();
-}
-
-MailBox.prototype.clear = function () {
-    if (this.cmdArr.length > 500) {
-        this.cmdArr = this.cmdArr.filter(function (it, index) {
-            return it.data.type !== "inputData" || index > 150;
-        })
-    }
-}
-
-var timerMap = {};
-
 function Decoder() {
     this.cacheBuffer = new CacheBuffer(65536);
     this.logLevel = 0;
@@ -169,27 +107,25 @@ function getJSON(strPointer) {
     return JSON.parse(paramJsonStr);
 }
 
-/**
- * 真正的开始
- */
-var decoder = null;
 
-var isFailed = false;
-var mailBox = new MailBox(messageHandler);
+var decoder;
+var inited = false;
+var cmdsBeforeInit = [];
 
 function main() {
     try {
         decoder = new Decoder();
         decoder.initDecoder(videoCallback, audioCallback);
     } catch (e) {
-        this.isFailed = true;
-        self.postMessage({
-            type: "error",
-            data: e.stack
-        })
+        sendError(e)
+        self.removeEventListener("message", onmessage);
+        return;
     }
-
-    mailBox.start();
+    for (var i = 0; i < cmdsBeforeInit.length; i++) {
+        var e = cmdsBeforeInit[i];
+        messageHandler(e);
+    }
+    inited = true;
 }
 
 function videoCallback(decoderId, buff, size, pts, paramJsonStr) {
@@ -225,37 +161,57 @@ function audioCallback(decoderId, buff, size, pts, paramJsonStr) {
 function messageHandler(e) {
     var type = e.data.type;
     var data = e.data.data;
-    switch (type) {
-        case "uninitDecoder":
-            decoder.uninitDecoder();
-            break;
-        case "openDecoder":
-            decoder.openDecoder(data.fileName, data.isReplay);
-            break;
-        case "closeDecoder":
-            decoder.closeDecoder();
-            break;
-        case "inputData":
-            decoder.inputData(data.data);
-            decoder.flushDecoder();
-            break;
-        case "decodePacket":
-            decoder.decodePacket();
-            break;
+    try {
+        switch (type) {
+            case "uninitDecoder":
+                decoder.uninitDecoder();
+                break;
+            case "openDecoder":
+                decoder.openDecoder(data.fileName, data.isReplay);
+                break;
+            case "closeDecoder":
+                decoder.closeDecoder();
+                break;
+            case "inputData":
+                decoder.inputData(data.data);
+                decoder.flushDecoder();
+                break;
+            case "decodePacket":
+                decoder.decodePacket();
+                break;
+        }
+    } catch (e) {
+        sendError(e);
     }
 }
 
-self.addEventListener("message", function (e) {
-    if (!isFailed) {
-        mailBox.push(e);
-    }
-})
+function messageBind() {
+    self.addEventListener("message", onMessage);
+}
 
+function onMessage(e) {
+    if (inited) {
+        messageHandler(e);
+    } else {
+        cmdsBeforeInit.push(e);
+    }
+}
+
+function sendError(e) {
+    self.postMessage({
+        type: "error",
+        data: e.stack
+    })
+}
+
+/**
+ * 真正的开始
+ */
+messageBind();
 self.Module = {
     mainScriptUrlOrBlob: "./libffmpeg.js",
     onRuntimeInitialized: function () {
         main();
     }
 };
-
 importScripts("./libffmpeg.js");
