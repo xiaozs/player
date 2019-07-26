@@ -12,24 +12,20 @@ export class LiveLoader extends PlayerParts {
         super(eventBus);
     }
 
+    private isPlaying = false;
+
     @listen("play")
-    private onPlay() {
+    startDownload() {
         if (this.isPlaying) return;
         this.fetch();
     }
 
+    @listen("changeUrl")
     @listen("pause")
-    private onPause() {
-        this.isPlaying = false;
-    }
-
     @listen("destroy")
-    private onDestroy() {
+    stopDownload() {
         this.isPlaying = false;
-        this.off();
     }
-
-    private isPlaying = false;
 
     private async fetch() {
         try {
@@ -48,10 +44,5 @@ export class LiveLoader extends PlayerParts {
         } catch (e) {
             this.trigger("error", e);
         }
-    }
-
-    @listen("changeUrl")
-    onChangeUrl(url: string) {
-        this.onPause();
     }
 }
