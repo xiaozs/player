@@ -20,11 +20,16 @@ export class LiveLoader extends PlayerParts {
         this.fetch();
     }
 
-    @listen("changeUrl")
     @listen("pause")
     @listen("destroy")
     stopDownload() {
         this.isPlaying = false;
+    }
+
+    @listen("changeUrl")
+    changeUrl(url: string) {
+        this.stopDownload();
+        this.options.url = url;
     }
 
     private async fetch() {

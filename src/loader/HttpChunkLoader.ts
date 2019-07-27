@@ -1,37 +1,54 @@
 import { EventEmitter } from "../utils/EventEmitter";
 import { PlayerParts } from "../utils/PlayerParts";
 import { listen } from "../utils/listen";
-import { VideoFrame } from '../frame';
 import { Segment } from '../utils/Segment';
+import { Frame } from '../frame';
 
 export interface LiveLoaderOptions {
     url: string;
 }
 
-export class HttpChunkLoader extends PlayerParts {
-    constructor(private options: LiveLoaderOptions, eventBus: EventEmitter) {
-        super(eventBus);
-        this.getIndexData();
-    }
-    private indexData: Segment[] | null = null;
-    private rate = 1;
+class IndexData extends EventEmitter {
+    private segPromise: Promise<Segment[]>;
 
-    private async getIndexData() {
-        if (!this.indexData) {
-            try {
-                let res = await fetch(this.options.url, { mode: "cors" });
-                let text = await res.text();
-                this.indexData = this.parseIndexFile(text);
-                this.triggerMeta();
-            } catch (e) {
-                this.trigger("error", e);
-            }
+    constructor(private url: string) {
+        super();
+        this.segPromise = this.getIndexData(url);
+    }
+
+    getSegments() {
+        return this.segPromise;
+    }
+
+    private async getIndexData(m3u8Url: string) {
+        try {
+            let res = await fetch(m3u8Url, { mode: "cors" });
+            let text = await res.text();
+            let segs = this.parseIndexFile(text, m3u8Url);
+            this.triggerMeta();
+            return segs;
+        } catch (e) {
+            // todo, 这里可以添加重连逻辑
+
+            this.trigger("error", e);
+            throw new Error();
         }
     }
-    private parseIndexFile(text: string) {
+
+    private async triggerMeta() {
+        this.trigger("meta", {
+            duration: await this.getTotalDuration() / 1000
+        })
+    }
+
+    async getTotalDuration() {
+        let segs = await this.segPromise;
+        return segs.reduce((res, it) => res + it.duration, 0);
+    }
+
+    private parseIndexFile(text: string, m3u8Url: string) {
         let rows = text.split(/\r\n\|\r|\n/g);
         let res: Segment[] = [];
-        let now = 0;
         for (let i = 0; i < rows.length; i++) {
             let row = rows[i];
             let match = row.match(/^#EXTINF:([^,]*),/);
@@ -41,86 +58,76 @@ export class HttpChunkLoader extends PlayerParts {
                 let url = rows[i];
                 res.push(new Segment(
                     url,
-                    this.options.url,
-                    duration,
-                    now,
-                    now += duration,
+                    m3u8Url,
+                    duration * 1000
                 ));
             }
         }
         return res;
     }
-    private triggerMeta() {
-        this.trigger("meta", {
-            duration: this.indexData!.reduce((res, it) => res + it.duration, 0)
-        });
-        this.trigger("loader-meta", this.indexData);
+
+    changeUrl(url: string) {
+        this.url = url;
+        this.segPromise = this.getIndexData(url);
     }
-    private getSegment(time: number) {
-        return this.indexData!.find(it => time < it.end);
+}
+
+export class HttpChunkLoader extends PlayerParts {
+    private indexData: IndexData;
+
+    constructor(options: LiveLoaderOptions, eventBus: EventEmitter) {
+        super(eventBus);
+        this.onMeta = this.onMeta.bind(this);
+
+        this.indexData = new IndexData(options.url);
+        this.indexData.on("meta", this.onMeta);
     }
 
-    private resetSegmentFlags(without?: Segment) {
-        this.indexData!.forEach(it => it.hasSended = false);
-        if (without) {
-            without.hasSended = true;
+    private async getSegment(time: number) {
+        let segs = await this.indexData.getSegments();
+        let start = 0;
+        for (let seg of segs) {
+            let end = start + seg.duration;
+            if (time < end) {
+                return seg;
+            }
+            start = end;
         }
     }
 
-    @listen("rateChange")
-    private async onRateChange(val: number) {
-        this.rate = val;
-    }
-
-    @listen("play")
-    private async onPlay() {
-        await this.getIndexData();
-        let hasSended = this.indexData!.some(it => it.hasSended);
-        !hasSended && this.onSeek(0);
+    private onMeta(data: any) {
+        this.trigger("meta", data);
     }
 
     @listen("seek")
-    private async onSeek(time: number) {
-        await this.getIndexData();
-        let seg = this.getSegment(time);
-        if (seg) {
-            this.resetSegmentFlags(seg);
-            this.trigger("loader-chunked", await seg.data);
+    async resetSendFlag() {
+        let segs = await this.indexData.getSegments();
+        segs.forEach(it => it.hasSended = false);
+    }
+
+    @listen("store-needFrame")
+    async onNeedFrame(pts: number) {
+        let seg = await this.getSegment(pts);
+        if (seg && !seg.hasSended) {
+            await this.resetSendFlag();
+            seg.hasSended = true;
+            this.trigger("loader-chunked", await seg!.data);
         }
     }
 
     @listen("store-videoFrame")
-    private async onFrame(frame: VideoFrame) {
-        let currentTime = frame.pts / 1000;
-        let seg = this.getSegment(currentTime);
-        if (!seg) return;
-        if (this.rate > 0) {
-            if (currentTime + 5 > seg.end) {
-                let nextSeg = this.getSegment(seg.end);
-                if (nextSeg && !nextSeg.hasSended) {
-                    this.resetSegmentFlags(nextSeg);
-                    this.trigger("loader-chunked", await nextSeg.data);
-                }
-            }
-        } else {
-            if (seg.start > currentTime - 5) {
-                let prevSeg = this.getSegment(seg.start - 0.1);
-                if (prevSeg && !prevSeg.hasSended) {
-                    this.resetSegmentFlags(prevSeg);
-                    this.trigger("loader-chunked", await prevSeg.data);
-                }
-            }
+    async onFrame(frame: Frame) {
+        if (frame.pts === 0) {
+            this.trigger("end", { backward: true });
+        }
+        let duration = await this.indexData.getTotalDuration();
+        if (frame.pts === duration) {
+            this.trigger("end", { backward: false });
         }
     }
 
     @listen("changeUrl")
     onChangeUrl(url: string) {
-        this.indexData = null;
-        this.getIndexData();
-    }
-
-    @listen("store-needFrame")
-    onNeedFrame(pts: number) {
-        this.onSeek(pts / 1000);
+        this.indexData.changeUrl(url);
     }
 }

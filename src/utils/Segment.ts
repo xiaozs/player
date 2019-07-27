@@ -5,9 +5,7 @@ export class Segment {
     constructor(
         public url: string,
         public m3u8Url: string,
-        public duration: number,
-        public start: number,
-        public end: number
+        public duration: number
     ) { }
     get data() {
         if (!this._data) {
