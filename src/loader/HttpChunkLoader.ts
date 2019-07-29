@@ -2,7 +2,7 @@ import { EventEmitter } from "../utils/EventEmitter";
 import { PlayerParts } from "../utils/PlayerParts";
 import { listen } from "../utils/listen";
 import { Segment } from '../utils/Segment';
-import { Frame } from '../frame';
+import { Frame, DecoderMeta } from '../frame';
 
 export interface LiveLoaderOptions {
     url: string;
@@ -35,7 +35,7 @@ class IndexData extends EventEmitter {
         }
     }
 
-    private async triggerMeta() {
+    async triggerMeta() {
         this.trigger("meta", {
             duration: await this.getTotalDuration() / 1000
         })
@@ -83,13 +83,14 @@ export class HttpChunkLoader extends PlayerParts {
         this.indexData.on("meta", this.onMeta);
     }
 
-    private async getSegment(time: number) {
+    private async getSegmentIndex(time: number) {
         let segs = await this.indexData.getSegments();
         let start = 0;
-        for (let seg of segs) {
+        for (let i = 0; i < segs.length; i++) {
+            let seg = segs[i];
             let end = start + seg.duration;
             if (time < end) {
-                return seg;
+                return i;
             }
             start = end;
         }
@@ -99,20 +100,50 @@ export class HttpChunkLoader extends PlayerParts {
         this.trigger("meta", data);
     }
 
-    @listen("seek")
-    async resetSendFlag() {
-        let segs = await this.indexData.getSegments();
-        segs.forEach(it => it.hasSended = false);
-    }
-
+    isLoading = false;
     @listen("store-needFrame")
     async onNeedFrame(pts: number) {
-        let seg = await this.getSegment(pts);
-        if (seg && !seg.hasSended) {
-            await this.resetSendFlag();
-            seg.hasSended = true;
-            this.trigger("loader-chunked", await seg!.data, seg);
+        if (this.isLoading) return;
+        this.isLoading = true;
+        await this.decoderChunkOf(pts);
+        this.isLoading = false;
+    }
+
+    private async decoderChunkOf(pts: number) {
+        let i = await this.getSegmentIndex(pts);
+        if (i === undefined) return;
+        let segs = await this.indexData.getSegments();
+        while (true) {
+            let seg = segs[i];
+            this.trigger("loader-chunked", await seg.data, seg);
+            let meta = await this.onDecoderMeta();
+
+            this.updateMeta(seg, meta);
+
+            if (pts < meta.startPts && i !== 0) {
+                i--;
+            } else if (pts > meta.endPts) {
+                i++;
+            } else {
+                break;
+            }
         }
+    }
+
+    private updateMeta(seg: Segment, meta: DecoderMeta) {
+        let newDuration = meta.endPts - meta.startPts;
+        if (seg.duration !== newDuration) {
+            seg.duration = newDuration;
+            this.indexData.triggerMeta();
+        }
+    }
+
+    private onDecoderMeta() {
+        return new Promise<DecoderMeta>(resolve => {
+            this.once("decoder-meta", (data: DecoderMeta) => {
+                resolve(data);
+            })
+        })
     }
 
     @listen("store-videoFrame")

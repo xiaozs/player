@@ -22,6 +22,10 @@ export abstract class PlayerParts {
         this.eventBus.on(eventName, callback);
         this.listeners.push({ eventName, callback });
     }
+    protected once(eventName: string, callback: Function) {
+        this.eventBus.once(eventName, callback);
+        this.listeners.push({ eventName, callback });
+    }
     protected trigger(eventName: string, ...data: any[]) {
         this.eventBus.trigger(eventName, ...data);
     }

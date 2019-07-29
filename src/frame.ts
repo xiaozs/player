@@ -1,3 +1,5 @@
+import { Segment } from './utils/Segment';
+
 export interface VideoMeta {
     //编码ID
     codec_id: number;
@@ -36,4 +38,10 @@ export interface Frame {
     data: Uint8Array;
     pts: number;
     fps: number;
+}
+
+export interface DecoderMeta {
+    segment: Segment;
+    startPts: number;
+    endPts: number;
 }
