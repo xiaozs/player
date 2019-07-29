@@ -2,6 +2,8 @@ import { EventEmitter } from "../utils/EventEmitter";
 import { PlayerParts } from "../utils/PlayerParts";
 import { listen } from "../utils/listen";
 import { PlayerOptions } from '../index';
+import { VideoFrame } from '../frame';
+import { Segment } from '../utils/Segment';
 
 export class Decoder extends PlayerParts {
     private worker: Worker = new Worker(this.options.workerUrl);;
@@ -18,9 +20,13 @@ export class Decoder extends PlayerParts {
             type: "openDecoder",
             data: {
                 fileName: this.options.fileName,
-                isReplay: this.options.loaderType !== "live"
+                isReplay: this.isReplay
             }
         })
+    }
+
+    private get isReplay() {
+        return this.options.loaderType !== "live";
     }
 
     private messageBind() {
@@ -65,5 +71,32 @@ export class Decoder extends PlayerParts {
                 data: copyChunk
             }
         }, [copyChunk]);
+    }
+
+    private startPts: number | null = null;
+    private endPts: number | null = null;
+    private currentSeg: Segment | null = null;
+    @listen("decoder-videoFrame")
+    logPts(frame: VideoFrame) {
+        if (this.startPts === null) {
+            this.startPts = frame.pts;
+        } else {
+            this.endPts = frame.pts;
+        }
+    }
+    @listen("loader-chunked")
+    onChunked(chunk: ArrayBuffer, seg: Segment) {
+        this.currentSeg = seg;
+    }
+    @listen("flushDecoder")
+    onFlush() {
+        this.trigger("decoder-meta", {
+            segment: this.currentSeg,
+            startPts: this.startPts,
+            endPts: this.endPts
+        })
+        this.startPts = null;
+        this.endPts = null;
+        this.currentSeg = null;
     }
 }

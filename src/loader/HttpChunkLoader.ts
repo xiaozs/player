@@ -111,7 +111,7 @@ export class HttpChunkLoader extends PlayerParts {
         if (seg && !seg.hasSended) {
             await this.resetSendFlag();
             seg.hasSended = true;
-            this.trigger("loader-chunked", await seg!.data);
+            this.trigger("loader-chunked", await seg!.data, seg);
         }
     }
 
@@ -119,6 +119,7 @@ export class HttpChunkLoader extends PlayerParts {
     async onFrame(frame: Frame) {
         if (frame.pts === 0) {
             this.trigger("end", { backward: true });
+            return;
         }
         let duration = await this.indexData.getTotalDuration();
         if (frame.pts === duration) {

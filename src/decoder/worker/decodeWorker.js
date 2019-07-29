@@ -60,6 +60,7 @@ Decoder.prototype.decodePacket = function () {
 
 Decoder.prototype.flushDecoder = function () {
     var res = Module._flushDecoder(1);
+    self.postMessage({ type: "flushDecoder" });
     console.log("flushDecoder");
     if (res !== 0 && res !== 7) {
         throw new Error("flushDecoder 失败");
@@ -158,6 +159,8 @@ function audioCallback(decoderId, buff, size, pts, paramJsonStr) {
     }, [data.buffer])
 }
 
+var isReplay = false;
+
 function messageHandler(e) {
     var type = e.data.type;
     var data = e.data.data;
@@ -167,14 +170,15 @@ function messageHandler(e) {
                 decoder.uninitDecoder();
                 break;
             case "openDecoder":
-                decoder.openDecoder(data.fileName, data.isReplay);
+                isReplay = data.isReplay;
+                decoder.openDecoder(data.fileName, isReplay);
                 break;
             case "closeDecoder":
                 decoder.closeDecoder();
                 break;
             case "inputData":
                 decoder.inputData(data.data);
-                decoder.flushDecoder();
+                if (isReplay) decoder.flushDecoder();
                 break;
             case "decodePacket":
                 decoder.decodePacket();

@@ -62,7 +62,9 @@ export class NormalStore extends PlayerParts {
                 return;
             };
         }
-        this.requestNewFrame();
+        let needNewFrame = this.isNeedNewFrame();
+        if (needNewFrame) this.requestNewFrame();
+
         this.vTimer = window.setTimeout(() => this.startVideoPlayLoop(oneFrame), 1000 / fps / Math.abs(this.rate));
     }
 
@@ -72,7 +74,6 @@ export class NormalStore extends PlayerParts {
         if (frame) {
             this.trigger("store-audioFrame", frame);
             fps = frame.fps;
-            this.lastPts = frame.pts;
             if (oneFrame) {
                 this.isPlaying = false;
                 return;
@@ -91,25 +92,27 @@ export class NormalStore extends PlayerParts {
         return frame;
     }
 
-    private requestNewFrame() {
+    private get startPts() {
         let start = this.videoFrameStore[0] || { pts: 0 };
+        return start.pts;
+    }
+
+    private get endPts() {
         let end = this.videoFrameStore[this.videoFrameStore.length - 1] || { pts: 0 };
+        return end.pts;
+    }
 
-        let needFrame = false;
-
+    private isNeedNewFrame() {
         if (this.rate > 0) {
-            needFrame = this.lastPts + 3000 > end.pts;
+            return this.lastPts + 3000 > this.endPts;
         } else {
-            needFrame = this.lastPts - 3000 < start.pts;
+            return this.lastPts - 3000 < this.startPts;
         }
+    }
 
-        if (needFrame) {
-            if (this.rate > 0) {
-                this.trigger("store-needFrame", end.pts);
-            } else {
-                this.trigger("store-needFrame", start.pts);
-            }
-        }
+    private requestNewFrame() {
+        let needPts = this.rate > 0 ? this.endPts : this.startPts;
+        this.trigger("store-needFrame", needPts);
     }
 
     @listen("rateChange")
