@@ -16,17 +16,19 @@
   "devDependencies": {
     "browserify": "^16.2.3",
     "del": "^4.1.1",
-    "exorcist": "^1.0.1",
     "express": "^4.16.4",
     "gulp": "^3.9.1",
-    "gulp-typescript": "^5.0.1",
+    "gulp-sourcemaps": "^2.6.5",
+    "gulp-uglify": "^3.0.2",
+    "http-proxy-middleware": "^0.19.1",
     "jquery": "^3.4.1",
     "portscanner": "^2.2.0",
+    "reflect-metadata": "^0.1.13",
     "requirejs": "^2.3.6",
     "tsify": "^4.0.1",
+    "tslib": "^1.9.3",
     "typescript": "^3.4.5",
-    "http-proxy-middleware": "^0.19.1",
-    "reflect-metadata": "^0.1.13",
-    "tslib": "^1.9.3"
+    "vinyl-buffer": "^1.0.1",
+    "vinyl-source-stream": "^2.0.0"
   }
 }

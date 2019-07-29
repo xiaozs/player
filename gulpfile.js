@@ -1,12 +1,12 @@
 var del = require("del");
 var gulp = require("gulp");
-var childProcess = require("child_process")
-var tsc = require("gulp-typescript");
-tsc = tsc.createProject("./tsconfig.json");
+var source = require('vinyl-source-stream');
+var buffer = require('vinyl-buffer');
+var childProcess = require("child_process");
 var tsify = require("tsify");
+var uglify = require("gulp-uglify");
+var sourcemaps = require('gulp-sourcemaps');
 var browserify = require("browserify");
-var exorcist = require('exorcist');
-var fs = require("fs");
 
 function swallowError(error) {
     // If you want details of the error in the console
@@ -27,9 +27,13 @@ gulp.task("build", ["clear", "copy-worker"], function () {
         .add("./src/index.ts")
         .plugin(tsify)
         .bundle()
+        .pipe(source('index.js'))
+        .pipe(buffer())
+        .pipe(sourcemaps.init({ loadMaps: true }))
+        .pipe(uglify())
         .on("error", swallowError)
-        .pipe(exorcist("./dist/index.js.map"))
-        .pipe(fs.createWriteStream("./dist/index.js"));
+        .pipe(sourcemaps.write("./"))
+        .pipe(gulp.dest("./dist"));
 });
 gulp.task("watch-file", function () {
     gulp.start("build");

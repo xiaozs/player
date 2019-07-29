@@ -36,9 +36,8 @@ class IndexData extends EventEmitter {
     }
 
     async triggerMeta() {
-        this.trigger("meta", {
-            duration: await this.getTotalDuration() / 1000
-        })
+        let duration = await this.getTotalDuration() / 1000
+        this.trigger("meta", { duration });
     }
 
     async getTotalDuration() {
