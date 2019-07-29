@@ -51,7 +51,7 @@ export class NormalStore extends PlayerParts {
 
     private startVideoPlayLoop(oneFrame = false) {
         let frame = this.getNextFrame(this.videoFrameStore);
-        let fps = 60;
+        let fps = 25;
         if (frame) {
             fps = frame.fps;
             this.lastPts = frame.pts;
@@ -63,14 +63,14 @@ export class NormalStore extends PlayerParts {
             };
         }
         let needNewFrame = this.isNeedNewFrame();
-        if (!frame || needNewFrame) this.requestNewFrame();
+        if (!frame || needNewFrame) this.requestNewFrame(!!frame);
 
         this.vTimer = window.setTimeout(() => this.startVideoPlayLoop(oneFrame), 1000 / fps / Math.abs(this.rate));
     }
 
     private startAudioPlayLoop(oneFrame = false) {
         let frame = this.getNextFrame(this.audioFrameStore);
-        let fps = 60;
+        let fps = 25;
         if (frame) {
             this.trigger("store-audioFrame", frame);
             fps = frame.fps;
@@ -110,13 +110,12 @@ export class NormalStore extends PlayerParts {
         }
     }
 
-    private requestNewFrame() {
-        let isLastPtsInCache = this.startPts <= this.lastPts && this.lastPts <= this.endPts;
-        if (isLastPtsInCache) {
+    private requestNewFrame(isPreloading: boolean) {
+        if (!isPreloading && this.lastPts !== this.startPts && this.lastPts !== this.endPts) {
+            this.trigger("store-needFrame", this.lastPts);
+        } else {
             let needPts = this.rate > 0 ? this.lastPts + 3000 : this.lastPts - 3000;
             this.trigger("store-needFrame", needPts);
-        } else {
-            this.trigger("store-needFrame", this.lastPts);
         }
     }
 
@@ -161,7 +160,11 @@ export class NormalStore extends PlayerParts {
     }
 
     private cacheControll<T extends Frame>(frameStore: T[]) {
-        // todo，缓存策略
+        let start = this.lastPts - 5000;
+        let end = this.lastPts + 5000;
+
+        let newCache = frameStore.filter(it => start <= it.pts && it.pts <= end);
+        frameStore.splice(0, frameStore.length, ...newCache);
     }
 
     @listen("pause")
@@ -198,13 +201,18 @@ export class NormalStore extends PlayerParts {
         this.startPlayLoop(true);
     }
 
-    private toFrame(frameStore: Frame[], index: number) {
+    private getCurrentFrameIndex(frameStore: Frame[]) {
         // 先找精确的
         let baseIndex = frameStore.findIndex(it => it.pts === this.lastPts);
         if (baseIndex === -1) {
             //再找模糊的
             baseIndex = frameStore.findIndex(it => Math.abs(it.pts - this.lastPts) <= (1000 / it.fps * 2));
         }
+        return baseIndex;
+    }
+
+    private toFrame(frameStore: Frame[], index: number) {
+        let baseIndex = this.getCurrentFrameIndex(frameStore);
 
         let basePts: number;
         if (baseIndex === -1) {

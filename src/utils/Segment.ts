@@ -2,6 +2,10 @@ import * as Url from "url";
 export class Segment {
     private _data: Promise<ArrayBuffer> | null = null;
     hasSended = false;
+
+    public start?: number;
+    public end?: number;
+
     constructor(
         public url: string,
         public m3u8Url: string,

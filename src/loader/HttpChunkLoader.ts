@@ -83,19 +83,6 @@ export class HttpChunkLoader extends PlayerParts {
         this.indexData.on("meta", this.onMeta);
     }
 
-    private async getSegmentIndex(time: number) {
-        let segs = await this.indexData.getSegments();
-        let start = 0;
-        for (let i = 0; i < segs.length; i++) {
-            let seg = segs[i];
-            let end = start + seg.duration;
-            if (time < end) {
-                return i;
-            }
-            start = end;
-        }
-    }
-
     private onMeta(data: any) {
         this.trigger("meta", data);
     }
@@ -122,7 +109,7 @@ export class HttpChunkLoader extends PlayerParts {
 
             if (pts < meta.startPts && i !== 0) {
                 i--;
-            } else if (pts > meta.endPts) {
+            } else if (pts > meta.endPts && i !== segs.length - 1) {
                 i++;
             } else {
                 break;
@@ -130,8 +117,35 @@ export class HttpChunkLoader extends PlayerParts {
         }
     }
 
+    private async getSegmentIndex(time: number) {
+        let segs = await this.indexData.getSegments();
+        for (let i = 0; i < segs.length; i++) {
+            let seg = segs[i];
+            if (
+                seg.start !== void 0 && seg.end !== void 0 &&
+                seg.start <= time && time <= seg.end
+            ) {
+                return i;
+            }
+        }
+
+        let start = 0;
+        for (let i = 0; i < segs.length; i++) {
+            let seg = segs[i];
+            let end = start + seg.duration;
+
+            if (time < end) {
+                return i;
+            }
+
+            start = end;
+        }
+    }
+
     private updateMeta(seg: Segment, meta: DecoderMeta) {
         let newDuration = meta.endPts - meta.startPts;
+        seg.start = meta.startPts;
+        seg.end = meta.endPts;
         if (seg.duration !== newDuration) {
             seg.duration = newDuration;
             this.indexData.triggerMeta();
@@ -152,8 +166,10 @@ export class HttpChunkLoader extends PlayerParts {
             this.trigger("end", { backward: true });
             return;
         }
-        let duration = await this.indexData.getTotalDuration();
-        if (frame.pts === duration) {
+
+        let segs = await this.indexData.getSegments();
+        let lastSeg = segs[segs.length - 1];
+        if (frame.pts === lastSeg.end) {
             this.trigger("end", { backward: false });
         }
     }
