@@ -63,7 +63,7 @@ export class NormalStore extends PlayerParts {
             };
         }
         let needNewFrame = this.isNeedNewFrame();
-        if (needNewFrame) this.requestNewFrame();
+        if (!frame || needNewFrame) this.requestNewFrame();
 
         this.vTimer = window.setTimeout(() => this.startVideoPlayLoop(oneFrame), 1000 / fps / Math.abs(this.rate));
     }
@@ -111,8 +111,13 @@ export class NormalStore extends PlayerParts {
     }
 
     private requestNewFrame() {
-        let needPts = this.rate > 0 ? this.endPts : this.startPts;
-        this.trigger("store-needFrame", needPts);
+        let isLastPtsInCache = this.startPts <= this.lastPts && this.lastPts <= this.endPts;
+        if (isLastPtsInCache) {
+            let needPts = this.rate > 0 ? this.lastPts + 3000 : this.lastPts - 3000;
+            this.trigger("store-needFrame", needPts);
+        } else {
+            this.trigger("store-needFrame", this.lastPts);
+        }
     }
 
     @listen("rateChange")
