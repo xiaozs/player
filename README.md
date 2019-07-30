@@ -144,6 +144,8 @@ player.once(eventName, function(...args) { })
 |渲染一帧|"frame"|时间点（秒）|
 |异常|"error"|异常对象|
 |播放结束|"end"|{ backward: 是否倒放 }|
+|下载中（卡顿）|"loading"||
+|下载中（卡顿）解除|"unloading"||
 
 * 解除事件监听
 ```js

@@ -98,6 +98,8 @@ function getPlayer($item, url) {
         player.on("frame", onFrame($item))
         player.on("error", function (e) { console.error(e) });
         player.on("end", function () { console.log("播放完毕") });
+        player.on("loading", function () { $item.find(".loading").show() })
+        player.on("unloading", function () { $item.find(".loading").hide() })
     }
     return player;
 }

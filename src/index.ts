@@ -91,7 +91,9 @@ export class Player extends EventEmitter {
             "meta",
             "frame",
             "error",
-            "end"
+            "end",
+            "loading",
+            "unloading"
         );
     }
 

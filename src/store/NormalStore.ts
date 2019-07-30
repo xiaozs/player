@@ -49,6 +49,7 @@ export class NormalStore extends PlayerParts {
         this.startAudioPlayLoop(oneFrame);
     }
 
+    private loadingCount = 0;
     private startVideoPlayLoop(oneFrame = false) {
         let frame = this.getNextFrame(this.videoFrameStore);
         let fps = 25;
@@ -57,10 +58,21 @@ export class NormalStore extends PlayerParts {
             this.lastPts = frame.pts;
             this.trigger("store-videoFrame", frame);
             this.trigger("frame", frame.pts / 1000);
+
+            if (this.loadingCount > 0) {
+                this.trigger("unloading");
+                this.loadingCount = 0;
+            }
+
             if (oneFrame) {
                 this.isPlaying = false;
                 return;
             };
+        } else {
+            this.loadingCount++;
+            if (this.loadingCount > 5) {
+                this.trigger("loading");
+            }
         }
         let needNewFrame = this.isNeedNewFrame();
         if (!frame || needNewFrame) this.requestNewFrame(!!frame);
@@ -110,13 +122,19 @@ export class NormalStore extends PlayerParts {
         }
     }
 
+    private isForce = false;
     private requestNewFrame(isPreloading: boolean) {
-        if (!isPreloading && this.lastPts !== this.startPts && this.lastPts !== this.endPts) {
-            this.trigger("store-needFrame", this.lastPts);
+        if (
+            !isPreloading &&
+            Math.abs(this.lastPts - this.startPts) > 80 &&
+            Math.abs(this.lastPts - this.endPts) > 80
+        ) {
+            this.trigger("store-needFrame", this.lastPts, this.isForce);
         } else {
             let needPts = this.rate > 0 ? this.lastPts + 3000 : this.lastPts - 3000;
-            this.trigger("store-needFrame", needPts);
+            this.trigger("store-needFrame", needPts, this.isForce);
         }
+        this.isForce = false;
     }
 
     @listen("rateChange")
@@ -191,6 +209,7 @@ export class NormalStore extends PlayerParts {
     @listen("seek")
     seek(time: number) {
         this.lastPts = time * 1000;
+        this.isForce = true;
         this.startPlayLoop(true);
     }
 

@@ -88,8 +88,8 @@ export class HttpChunkLoader extends PlayerParts {
 
     isLoading = false;
     @listen("store-needFrame")
-    async onNeedFrame(pts: number) {
-        if (this.isLoading) return;
+    async onNeedFrame(pts: number, isForce: boolean) {
+        if (this.isLoading && !isForce) return;
         this.isLoading = true;
         await this.decoderChunkOf(pts);
         this.isLoading = false;
