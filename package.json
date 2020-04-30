@@ -21,7 +21,7 @@
     "gulp-sourcemaps": "^2.6.5",
     "gulp-uglify": "^3.0.2",
     "http-proxy-middleware": "^0.19.1",
-    "jquery": "^3.4.1",
+    "jquery": "^3.5.0",
     "portscanner": "^2.2.0",
     "reflect-metadata": "^0.1.13",
     "requirejs": "^2.3.6",
