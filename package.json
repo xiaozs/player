@@ -17,7 +17,7 @@
     "browserify": "^16.2.3",
     "del": "^4.1.1",
     "express": "^4.16.4",
-    "gulp": "^3.9.1",
+    "gulp": "^4.0.2",
     "gulp-sourcemaps": "^2.6.5",
     "gulp-uglify": "^3.0.2",
     "http-proxy-middleware": "^0.19.1",
